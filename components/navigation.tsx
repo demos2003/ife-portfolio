@@ -39,7 +39,7 @@ export function Navigation() {
             <img
               src="/IfeoluwaLogo.png"
               alt="Ifeoluwa Logo"
-              className="h-38 w-auto md:h-30"
+              className="h-20 w-auto md:h-30"
             />
           </button>
 
