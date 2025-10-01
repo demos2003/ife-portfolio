@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, description, type, url, thumbnailUrl } = body
+    const { title, description, type, url, thumbnailUrl, images } = body
 
     console.log('POST request body:', body)
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate URL is required for youtube and short-form, optional for other
+    // Validate URL is required for youtube and short-form, optional for other/carousel
     if ((type === 'youtube' || type === 'short-form') && !url) {
       console.log('Missing URL for type:', type)
       return NextResponse.json(
@@ -43,10 +43,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate type
-    if (!['youtube', 'short-form', 'other'].includes(type)) {
+    if (!['youtube', 'short-form', 'other', 'carousel'].includes(type)) {
       console.log('Invalid type:', type)
       return NextResponse.json(
-        { error: 'Invalid type. Must be: youtube, short-form, or other' },
+        { error: 'Invalid type. Must be: youtube, short-form, other, or carousel' },
         { status: 400 }
       )
     }
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       type,
       url,
       thumbnailUrl,
+      images,
       visible: true
     })
 
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
       type,
       url,
       thumbnailUrl,
+      images,
       visible: true
     })
 

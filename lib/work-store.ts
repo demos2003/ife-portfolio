@@ -8,9 +8,10 @@ export type WorkItem = {
   _id: string  // MongoDB auto-generated ObjectId
   title: string
   description: string
-  type: "youtube" | "short-form" | "other"
+  type: "youtube" | "short-form" | "other" | "carousel"
   url?: string
   thumbnailUrl?: string
+  images?: string[]
   visible?: boolean
   createdAt: string
 }
@@ -34,6 +35,7 @@ export async function getWorkItems(userId?: string): Promise<WorkItem[]> {
       type: item.type,
       url: item.url,
       thumbnailUrl: item.thumbnailUrl,
+      images: item.images,
       visible: item.visible,
       createdAt: item.createdAt,
     }))
@@ -74,6 +76,7 @@ export async function saveWorkItem(item: Omit<WorkItem, "_id" | "createdAt">): P
       type: newItem.type,
       url: newItem.url,
       thumbnailUrl: newItem.thumbnailUrl,
+      images: newItem.images,
       visible: newItem.visible,
       createdAt: newItem.createdAt,
     }

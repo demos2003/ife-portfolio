@@ -30,8 +30,9 @@ export async function uploadToCloudinary(file: File): Promise<UploadResult> {
       cloudinary.uploader.upload_stream(
         {
           folder: 'portfolio-thumbnails',
+          // Preserve original aspect ratio: limit by width, no forced height/crop
           transformation: [
-            { width: 800, height: 450, crop: 'fill' }, // Standard video thumbnail size
+            { width: 1600, crop: 'limit' },
             { quality: 'auto' },
             { format: 'webp' }
           ],

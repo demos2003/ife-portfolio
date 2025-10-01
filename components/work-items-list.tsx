@@ -164,7 +164,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                   <TableCell>
                     <Badge variant="secondary" className="bg-primary/10 text-primary">
                       <Icon className="h-3 w-3 mr-1" />
-                      {item.type === "youtube" ? "YouTube" : item.type === "short-form" ? "Short Form" : "Other"}
+                      {item.type === "youtube" ? "YouTube" : item.type === "short-form" ? "Short Form" : item.type === "carousel" ? "Carousel": "Other"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -297,7 +297,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="bg-primary/10 text-primary">
                         {React.createElement(getIcon(previewItem.type), { className: "h-3 w-3 mr-1" })}
-                        {previewItem.type === "youtube" ? "YouTube" : previewItem.type === "short-form" ? "Short Form" : "Other"}
+                        {previewItem.type === "youtube" ? "YouTube" : previewItem.type === "short-form" ? "Short Form" : previewItem.type === "carousel" ? "Carousel": "Other"}
                       </Badge>
                       {previewItem.visible !== false ? (
                         <Badge variant="default" className="bg-green-100 text-green-800">

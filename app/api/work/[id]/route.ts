@@ -31,12 +31,12 @@ export async function PUT(
   try {
     const { id } = params
     const body = await request.json()
-    const { title, description, type, url, thumbnailUrl, visible } = body
+    const { title, description, type, url, thumbnailUrl, images, visible } = body
 
     // Validate type if provided
-    if (type && !['youtube', 'short-form', 'other'].includes(type)) {
+    if (type && !['youtube', 'short-form', 'other', 'carousel'].includes(type)) {
       return NextResponse.json(
-        { error: 'Invalid type. Must be: youtube, short-form, or other' },
+        { error: 'Invalid type. Must be: youtube, short-form, other, or carousel' },
         { status: 400 }
       )
     }
@@ -47,6 +47,7 @@ export async function PUT(
     if (type !== undefined) updates.type = type
     if (url !== undefined) updates.url = url
     if (thumbnailUrl !== undefined) updates.thumbnailUrl = thumbnailUrl
+    if (images !== undefined) (updates as any).images = images
     if (visible !== undefined) updates.visible = visible
 
     await updateWorkItem(id, updates)

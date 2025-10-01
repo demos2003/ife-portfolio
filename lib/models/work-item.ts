@@ -4,9 +4,10 @@ export interface WorkItem {
   _id: string  // MongoDB auto-generated ObjectId
   title: string
   description: string
-  type: "youtube" | "short-form" | "other"
+  type: "youtube" | "short-form" | "other" | "carousel"
   url?: string
   thumbnailUrl?: string
+  images?: string[]
   visible?: boolean
   createdAt: string
 }
@@ -26,7 +27,7 @@ const workItemSchema = new mongoose.Schema<WorkItem>({
   },
   type: {
     type: String,
-    enum: ["youtube", "short-form", "other"],
+    enum: ["youtube", "short-form", "other", "carousel"],
     required: true,
   },
   url: {
@@ -39,6 +40,11 @@ const workItemSchema = new mongoose.Schema<WorkItem>({
   thumbnailUrl: {
     type: String,
     required: false,
+  },
+  images: {
+    type: [String],
+    required: false,
+    default: undefined,
   },
   createdAt: {
     type: String,

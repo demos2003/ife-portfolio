@@ -32,11 +32,13 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    type: "youtube" as "youtube" | "short-form" | "other",
+    type: "youtube" as "youtube" | "short-form" | "other" | "carousel",
     url: "",
     thumbnailUrl: "",
+    images: [] as string[],
   })
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false)
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("")
 
   const { user } = useAuthStore()
@@ -104,6 +106,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
       type: formData.type,
       url: formData.url,
       thumbnailUrl: formData.thumbnailUrl,
+      images: formData.images,
     })
 
     try {
@@ -118,6 +121,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
           type: formData.type,
           url: formData.url || undefined, // Send undefined instead of empty string for optional URL
           thumbnailUrl: formData.thumbnailUrl,
+          images: (formData.type === 'other' || formData.type === 'carousel') ? formData.images : undefined,
         }),
       })
 
@@ -135,6 +139,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
           type: "youtube",
           url: "",
           thumbnailUrl: "",
+          images: [],
         })
         setThumbnailPreview("")
         onWorkItemAdded()
@@ -147,6 +152,40 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleCarouselImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setIsUploadingImages(true)
+    try {
+      const uploadedUrls: string[] = []
+      for (const file of Array.from(files)) {
+        const uploadFormData = new FormData()
+        uploadFormData.append('file', file)
+        const response = await fetch('/api/upload', { method: 'POST', body: uploadFormData })
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Upload failed:', errorData.error)
+          continue
+        }
+        const result = await response.json()
+        uploadedUrls.push(result.url)
+      }
+      if (uploadedUrls.length > 0) {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }))
+      }
+    } catch (err) {
+      console.error('Carousel images upload error:', err)
+    } finally {
+      setIsUploadingImages(false)
+      // Reset the input value so selecting the same files again triggers onChange
+      e.target.value = ''
+    }
+  }
+
+  const handleRemoveCarouselImage = (index: number) => {
+    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
   }
 
   return (
@@ -203,6 +242,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
                   <SelectItem value="youtube">YouTube</SelectItem>
                   <SelectItem value="short-form">Short Form</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="carousel">Carousel</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -210,7 +250,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
             {/* URL */}
             <div className="grid gap-2">
               <Label htmlFor="url">
-                Project URL {formData.type === 'other' ? (
+                Project URL {formData.type === 'other' || formData.type === 'carousel' ? (
                   <span className="text-muted-foreground">(optional)</span>
                 ) : (
                   <span className="text-destructive">*</span>
@@ -222,7 +262,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
                 placeholder="https://youtube.com/watch?v=..."
                 value={formData.url}
                 onChange={(e) => handleUrlChange(e.target.value)}
-                required={formData.type !== 'other'}
+                required={formData.type !== 'other' && formData.type !== 'carousel'}
               />
             </div>
 
@@ -305,6 +345,63 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
               </div>
             </div>
           </div>
+
+          {/* Carousel Images (Other type) */}
+          {(formData.type === 'other' || formData.type === 'carousel') && (
+            <div className="grid gap-2">
+              <Label htmlFor="carousel-images">Carousel Images</Label>
+              <div className="space-y-3">
+                <div className="p-3 border rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Upload Multiple Images</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      id="carousel-images"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleCarouselImagesChange}
+                      className="cursor-pointer"
+                      disabled={isUploadingImages}
+                    />
+                    <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingImages} asChild>
+                      <label htmlFor="carousel-images" className="cursor-pointer">
+                        {isUploadingImages ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </label>
+                    </Button>
+                  </div>
+                  {isUploadingImages && (
+                    <p className="text-sm text-muted-foreground mt-2">Uploading images...</p>
+                  )}
+                </div>
+
+                {formData.images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3">
+                    {formData.images.map((img, idx) => (
+                      <div key={`carousel-img-${idx}`} className="relative aspect-video w-full rounded-lg overflow-hidden border border-border">
+                        <img src={img} alt={`Carousel ${idx + 1}`} className="w-full h-full object-cover" />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => handleRemoveCarouselImage(idx)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
