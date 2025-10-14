@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Video, Youtube, Smartphone, FileVideo } from "lucide-react"
-import { type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
 import { WorkItemsList } from "@/components/work-items-list"
 import { AddWorkItemDialog } from "@/components/add-work-item-dialog"
 import { useAuthStore } from "@/lib/auth-store"

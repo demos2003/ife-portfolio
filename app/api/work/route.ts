@@ -1,11 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getWorkItems, saveWorkItem } from '@/lib/work-store'
+import prisma from '@/lib/prisma'
+import { z } from 'zod'
+
+// Validation schema for work items
+const workItemSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  type: z.enum(['youtube', 'short-form', 'other', 'carousel'], {
+    errorMap: () => ({ message: 'Invalid type. Must be: youtube, short-form, other, or carousel' })
+  }),
+  url: z.string().url().optional().or(z.literal('')),
+  thumbnailUrl: z.string().url().optional().or(z.literal('')),
+  images: z.array(z.string().url()).optional(),
+  visible: z.boolean().default(true),
+}).refine(
+  (data) => {
+    // URL is required for youtube and short-form
+    if ((data.type === 'youtube' || data.type === 'short-form') && !data.url) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'URL is required for YouTube and Short Form content',
+    path: ['url'],
+  }
+)
 
 // GET /api/work - Get all work items (global, not user-specific)
 export async function GET() {
   try {
-    // Get all work items (no user filtering needed)
-    const workItems = await getWorkItems()
+    const workItems = await prisma.workItem.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
+
     console.log('Returning all work items, Count:', workItems.length)
     return NextResponse.json(workItems)
   } catch (error) {
@@ -20,55 +48,23 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, description, type, url, thumbnailUrl, images } = body
-
     console.log('POST request body:', body)
 
-    // Validate required fields
-    if (!title || !description || !type) {
-      console.log('Missing required fields:', { title, description, type })
-      return NextResponse.json(
-        { error: 'Missing required fields: title, description, type' },
-        { status: 400 }
-      )
-    }
+    // Validate and parse the request body
+    const validatedData = workItemSchema.parse(body)
 
-    // Validate URL is required for youtube and short-form, optional for other/carousel
-    if ((type === 'youtube' || type === 'short-form') && !url) {
-      console.log('Missing URL for type:', type)
-      return NextResponse.json(
-        { error: 'URL is required for YouTube and Short Form content' },
-        { status: 400 }
-      )
-    }
-
-    // Validate type
-    if (!['youtube', 'short-form', 'other', 'carousel'].includes(type)) {
-      console.log('Invalid type:', type)
-      return NextResponse.json(
-        { error: 'Invalid type. Must be: youtube, short-form, other, or carousel' },
-        { status: 400 }
-      )
-    }
-
-    console.log('Creating work item with data:', {
-      title,
-      description,
-      type,
-      url,
-      thumbnailUrl,
-      images,
-      visible: true
-    })
-
-    const newItem = await saveWorkItem({
-      title,
-      description,
-      type,
-      url,
-      thumbnailUrl,
-      images,
-      visible: true
+    // Create new work item using Prisma
+    const newItem = await prisma.workItem.create({
+      data: {
+        title: validatedData.title,
+        description: validatedData.description,
+        type: validatedData.type,
+        url: validatedData.url || null,
+        thumbnailUrl: validatedData.thumbnailUrl || null,
+        images: validatedData.images || [],
+        visible: validatedData.visible,
+        createdAt: new Date().toISOString(),
+      }
     })
 
     console.log('Successfully created work item:', newItem)
@@ -76,6 +72,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newItem, { status: 201 })
   } catch (error) {
     console.error('POST API Error:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input data', details: error.errors },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Failed to create work item', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Upload, Loader2 } from "lucide-react"
 import { generateSocialMediaEmbed } from "@/lib/utils"
-import { type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
 
 interface EditWorkItemDialogProps {
   open: boolean
@@ -130,7 +130,7 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
     })
 
     try {
-      const response = await fetch(`/api/work/${workItem._id}`, {
+      const response = await fetch(`/api/work/${workItem.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

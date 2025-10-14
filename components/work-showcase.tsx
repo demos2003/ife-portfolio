@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo} from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
 
 const filterOptions = [
   { value: "all", label: "All Work" },
@@ -129,7 +129,7 @@ export function WorkShowcase() {
                 const isShortForm = item.type === "short-form" && !!item.url
                 return (
                   <Card
-                    key={item._id}
+                    key={item.id}
                     className={`group overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-white/10 bg-white/10 dark:bg-white/5 backdrop-blur-xl ${
                       isShortForm ? "cursor-pointer" : ""
                     } ${
@@ -244,7 +244,7 @@ export function WorkShowcase() {
                   <Carousel className="w-full">
                     <CarouselContent>
                       {previewItem.images.map((imgUrl, idx) => (
-                        <CarouselItem key={`${previewItem._id}-img-${idx}`} className="">
+                        <CarouselItem key={`${previewItem.id}-img-${idx}`} className="">
                           <div className="relative w-full h-[75vh] flex items-center justify-center bg-black/5 rounded-lg">
                             <Image
                               src={imgUrl}

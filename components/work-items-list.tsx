@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Eye, EyeOff, Edit, Trash2, ExternalLink, Youtube, Smartphone, FileVideo, Loader2 } from "lucide-react"
-import { type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,7 +132,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
             {workItems.map((item) => {
               const Icon = getIcon(item.type)
               return (
-                <TableRow key={item._id}>
+                <TableRow key={item.id}>
                   <TableCell>
                     <div className="relative w-16 h-10 rounded overflow-hidden bg-muted">
                       {item.thumbnailUrl && (item.thumbnailUrl.includes('embed') || item.thumbnailUrl.includes('instagram.com')) ? (
@@ -212,7 +212,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleToggleVisibility(item._id, item.visible !== false)}
+                        onClick={() => handleToggleVisibility(item.id, item.visible !== false)}
                         className="h-8 px-2"
                       >
                         {item.visible !== false ? (
@@ -232,7 +232,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setDeleteId(item._id)}
+                        onClick={() => setDeleteId(item.id)}
                         className="h-8 px-2 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -343,7 +343,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                     {/* Action Button */}
                     <div className="pt-4">
                       <Button asChild variant="outline">
-                        <a href={previewItem.url} target="_blank" rel="noopener noreferrer">
+                        <a href={previewItem.url || '#'} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Project
                         </a>

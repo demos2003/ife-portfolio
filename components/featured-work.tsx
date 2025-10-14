@@ -6,15 +6,20 @@ import { ArrowRight, Play } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { getWorkItems, type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
 
 export function FeaturedWork() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
 
   useEffect(() => {
-    getWorkItems().then(items => {
-      setWorkItems(items.slice(0, 3))
-    })
+    fetch('/api/work/public')
+      .then(res => res.json())
+      .then(items => {
+        setWorkItems(items.slice(0, 3))
+      })
+      .catch(error => {
+        console.error('Failed to load work items:', error)
+      })
   }, [])
 
   if (workItems.length === 0) {
@@ -45,7 +50,7 @@ export function FeaturedWork() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
             {workItems.map((item, index) => (
               <Card
-                key={item._id}
+                key={item.id}
                 className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-scale-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -73,7 +78,7 @@ export function FeaturedWork() {
                   </h3>
                   <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{item.description}</p>
                   <Button asChild variant="ghost" size="sm" className="group/btn">
-                    <a href={item.url} target="_blank" rel="noopener noreferrer">
+                    <a href={item.url || '#'} target="_blank" rel="noopener noreferrer">
                       View Project
                       <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                     </a>
