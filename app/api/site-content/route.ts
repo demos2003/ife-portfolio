@@ -50,7 +50,13 @@ export async function PUT(request: NextRequest) {
       const updated = await upsertContactContent(content)
       return NextResponse.json({ success: true, content: updated })
     }
-    
+
+    // This should never be reached due to validation above, but adding for safety
+    return NextResponse.json(
+      { error: 'Invalid request' },
+      { status: 400 }
+    )
+
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update site content' },
