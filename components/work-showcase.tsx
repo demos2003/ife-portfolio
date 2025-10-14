@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -142,10 +143,11 @@ export function WorkShowcase() {
                       {/* Media Preview */}
                       <div className="relative aspect-video bg-muted/50 overflow-hidden">
                         {item.type === 'carousel' && Array.isArray(item.images) && item.images.length > 0 ? (
-                          <img
+                          <Image
                             src={item.images[0]}
                             alt={item.title}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         ) : item.thumbnailUrl && (item.thumbnailUrl.includes('embed') || item.thumbnailUrl.includes('instagram.com')) ? (
                           <iframe
@@ -156,10 +158,11 @@ export function WorkShowcase() {
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           />
                         ) : item.thumbnailUrl ? (
-                          <img
+                          <Image
                             src={item.thumbnailUrl}
                             alt={item.title}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -242,11 +245,12 @@ export function WorkShowcase() {
                     <CarouselContent>
                       {previewItem.images.map((imgUrl, idx) => (
                         <CarouselItem key={`${previewItem._id}-img-${idx}`} className="">
-                          <div className="w-full max-h-[75vh] flex items-center justify-center bg-black/5 rounded-lg">
-                            <img
+                          <div className="relative w-full h-[75vh] flex items-center justify-center bg-black/5 rounded-lg">
+                            <Image
                               src={imgUrl}
                               alt={`${previewItem.title} ${idx + 1}`}
-                              className="max-h-[75vh] w-auto h-auto object-contain"
+                              fill
+                              className="object-contain"
                             />
                           </div>
                         </CarouselItem>
@@ -282,11 +286,14 @@ export function WorkShowcase() {
                       Your browser does not support the video tag.
                     </video>
                   ) : previewItem.thumbnailUrl ? (
-                    <img
-                      src={previewItem.thumbnailUrl}
-                      alt={previewItem.title}
-                      className="max-h-[75vh] w-auto h-auto object-contain rounded-lg bg-black/5"
-                    />
+                    <div className="relative w-full h-[75vh]">
+                      <Image
+                        src={previewItem.thumbnailUrl}
+                        alt={previewItem.title}
+                        fill
+                        className="object-contain rounded-lg bg-black/5"
+                      />
+                    </div>
                   ) : null}
                 </div>
               ) : null}

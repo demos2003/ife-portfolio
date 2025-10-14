@@ -33,7 +33,7 @@ export function AdminLogin() {
         setError('Invalid email or password')
         setPassword("")
       }
-    } catch (error) {
+    } catch {
       setError('Network error. Please try again.')
       setPassword("")
     } finally {

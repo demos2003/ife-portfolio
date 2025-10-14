@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -133,7 +134,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
               return (
                 <TableRow key={item._id}>
                   <TableCell>
-                    <div className="w-16 h-10 rounded overflow-hidden bg-muted">
+                    <div className="relative w-16 h-10 rounded overflow-hidden bg-muted">
                       {item.thumbnailUrl && (item.thumbnailUrl.includes('embed') || item.thumbnailUrl.includes('instagram.com')) ? (
                         <iframe
                           src={item.thumbnailUrl}
@@ -143,10 +144,11 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         />
                       ) : item.thumbnailUrl ? (
-                        <img
+                        <Image
                           src={item.thumbnailUrl}
                           alt={item.title}
-                          className="w-full h-full object-cover object-center"
+                          fill
+                          className="object-cover object-center"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -268,7 +270,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Thumbnail/Video Section */}
                   <div className="flex-shrink-0">
-                    <div className="w-full lg:w-80 h-48 lg:h-52 rounded-lg overflow-hidden bg-muted">
+                    <div className="relative w-full lg:w-80 h-48 lg:h-52 rounded-lg overflow-hidden bg-muted">
                       {previewItem.thumbnailUrl && (previewItem.thumbnailUrl.includes('embed') || previewItem.thumbnailUrl.includes('instagram.com')) ? (
                         <iframe
                           src={previewItem.thumbnailUrl}
@@ -278,10 +280,11 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         />
                       ) : previewItem.thumbnailUrl ? (
-                        <img
+                        <Image
                           src={previewItem.thumbnailUrl}
                           alt={previewItem.title}
-                          className="w-full h-full object-cover object-center"
+                          fill
+                          className="object-cover object-center"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">

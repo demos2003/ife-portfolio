@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,7 +19,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Upload, Loader2 } from "lucide-react"
-import { useAuthStore } from "@/lib/auth-store"
 import { generateSocialMediaEmbed } from "@/lib/utils"
 
 interface AddWorkItemDialogProps {
@@ -40,8 +40,6 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false)
   const [isUploadingImages, setIsUploadingImages] = useState(false)
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("")
-
-  const { user } = useAuthStore()
 
   const handleUrlChange = (value: string) => {
     setFormData((prev) => ({ ...prev, url: value }))
@@ -324,10 +322,11 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
                           allowFullScreen
                         />
                       ) : (
-                        <img
+                        <Image
                           src={thumbnailPreview || "/placeholder.svg"}
                           alt="Thumbnail preview"
-                          className="w-full h-full object-cover object-center"
+                          fill
+                          className="object-cover object-center"
                         />
                       )}
                     </div>
@@ -385,7 +384,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
                   <div className="grid grid-cols-3 gap-3">
                     {formData.images.map((img, idx) => (
                       <div key={`carousel-img-${idx}`} className="relative aspect-video w-full rounded-lg overflow-hidden border border-border">
-                        <img src={img} alt={`Carousel ${idx + 1}`} className="w-full h-full object-cover" />
+                        <Image src={img} alt={`Carousel ${idx + 1}`} fill className="object-cover" />
                         <Button
                           type="button"
                           variant="destructive"
