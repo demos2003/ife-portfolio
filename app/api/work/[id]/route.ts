@@ -4,10 +4,10 @@ import { updateWorkItem, deleteWorkItem, getWorkItems, type WorkItem } from '@/l
 // PATCH /api/work/[id] - Toggle visibility or update work item
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { visible, ...updates } = body
 
@@ -26,10 +26,10 @@ export async function PATCH(
 // PUT /api/work/[id] - Update a work item
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { title, description, type, url, thumbnailUrl, images, visible } = body
 
@@ -64,10 +64,10 @@ export async function PUT(
 // DELETE /api/work/[id] - Delete a work item
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     await deleteWorkItem(id)
 
