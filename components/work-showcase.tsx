@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo} from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { type WorkItem } from "@/lib/types"
+import { api } from "@/lib/api-client"
 
 const filterOptions = [
   { value: "all", label: "All Work" },
@@ -28,12 +29,9 @@ export function WorkShowcase() {
   useEffect(() => {
     const loadWorkItems = async () => {
       try {
-        const response = await fetch('/api/work/public')
-        if (response.ok) {
-          const items = await response.json()
-          setWorkItems(items)
-          setIsLoaded(true)
-        }
+        const items = await api.get<WorkItem[]>('/api/work/public')
+        setWorkItems(items)
+        setIsLoaded(true)
       } catch (error) {
         console.error('Failed to load work items:', error)
         setIsLoaded(true)

@@ -11,6 +11,7 @@ import { Button } from "./ui/button"
 import { AboutSectionEditor } from "./about-section-editor"
 import { ContactSectionEditor } from "./contact-section-editor"
 import { AboutMeEditor } from "./about-me-editor"
+import { api } from "@/lib/api-client"
 
 export function AdminDashboard() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
@@ -25,25 +26,18 @@ export function AdminDashboard() {
 
   const loadWorkItems = async () => {
     try {
-      const response = await fetch('/api/work')
-
-      console.log('Response status:', response.status)
-      if (response.ok) {
-        const items = await response.json()
-        console.log('API Response type:', typeof items)
-        console.log('API Response value:', items)
-        console.log('Is array?', Array.isArray(items))
-        console.log('Number of items received:', items.length)
-        setWorkItems(items)
-        setStats({
-          total: items.length,
-          youtube: items.filter((item: WorkItem) => item.type === "youtube").length,
-          shortForm: items.filter((item: WorkItem) => item.type === "short-form").length,
-          other: items.filter((item: WorkItem) => item.type === "other").length,
-        })
-      } else {
-        console.error('API Error response:', await response.text())
-      }
+      const items = await api.get<WorkItem[]>('/api/work')
+      console.log('API Response type:', typeof items)
+      console.log('API Response value:', items)
+      console.log('Is array?', Array.isArray(items))
+      console.log('Number of items received:', items.length)
+      setWorkItems(items)
+      setStats({
+        total: items.length,
+        youtube: items.filter((item: WorkItem) => item.type === "youtube").length,
+        shortForm: items.filter((item: WorkItem) => item.type === "short-form").length,
+        other: items.filter((item: WorkItem) => item.type === "other").length,
+      })
     } catch (error) {
       console.error('Failed to load work items:', error)
     }

@@ -7,13 +7,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { type WorkItem } from "@/lib/types"
+import { api } from "@/lib/api-client"
 
 export function FeaturedWork() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
 
   useEffect(() => {
-    fetch('/api/work/public')
-      .then(res => res.json())
+    api.get<WorkItem[]>('/api/work/public')
       .then(items => {
         setWorkItems(items.slice(0, 3))
       })

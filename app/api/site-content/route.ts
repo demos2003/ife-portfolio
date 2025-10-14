@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // Validation schemas
 const skillSchema = z.object({
   title: z.string().min(1),
@@ -59,47 +62,63 @@ export async function PUT(request: NextRequest) {
     if (type === 'about') {
       const aboutData = aboutContentSchema.parse(content)
 
-      // Upsert the site content with about data
-      const updated = await prisma.siteContent.upsert({
-        where: { id: 'default' },
-        update: {
-          about: aboutData,
-          updatedAt: new Date(),
-        },
-        create: {
-          id: 'default',
-          about: aboutData,
-        },
-      })
+      // Get existing or create new
+      const existing = await prisma.siteContent.findFirst()
 
-      return NextResponse.json({ success: true, content: updated.about })
+      if (existing) {
+        // Update existing record
+        const updated = await prisma.siteContent.update({
+          where: { id: existing.id },
+          data: {
+            about: aboutData,
+            updatedAt: new Date(),
+          },
+        })
+        return NextResponse.json({ success: true, content: updated.about })
+      } else {
+        // Create new record (Prisma will auto-generate the ObjectId)
+        const created = await prisma.siteContent.create({
+          data: {
+            about: aboutData,
+          },
+        })
+        return NextResponse.json({ success: true, content: created.about })
+      }
     }
 
     if (type === 'contact') {
       const contactData = contactContentSchema.parse(content)
 
-      // Upsert the site content with contact data
-      const updated = await prisma.siteContent.upsert({
-        where: { id: 'default' },
-        update: {
-          contact: {
-            email: contactData.email,
-            phone: contactData.phone,
-            resumeUrl: contactData.resumeUrl || null,
-          },
-          updatedAt: new Date(),
-        },
-        create: {
-          id: 'default',
-          contact: {
-            email: contactData.email,
-            phone: contactData.phone,
-            resumeUrl: contactData.resumeUrl || null,
-          },
-        },
-      })
+      // Get existing or create new
+      const existing = await prisma.siteContent.findFirst()
 
-      return NextResponse.json({ success: true, content: updated.contact })
+      if (existing) {
+        // Update existing record
+        const updated = await prisma.siteContent.update({
+          where: { id: existing.id },
+          data: {
+            contact: {
+              email: contactData.email,
+              phone: contactData.phone,
+              resumeUrl: contactData.resumeUrl || null,
+            },
+            updatedAt: new Date(),
+          },
+        })
+        return NextResponse.json({ success: true, content: updated.contact })
+      } else {
+        // Create new record (Prisma will auto-generate the ObjectId)
+        const created = await prisma.siteContent.create({
+          data: {
+            contact: {
+              email: contactData.email,
+              phone: contactData.phone,
+              resumeUrl: contactData.resumeUrl || null,
+            },
+          },
+        })
+        return NextResponse.json({ success: true, content: created.contact })
+      }
     }
 
     return NextResponse.json(
@@ -117,8 +136,18 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // Return more detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('Detailed error:', { errorMessage, errorStack })
+
     return NextResponse.json(
-      { error: 'Failed to update site content' },
+      {
+        error: 'Failed to update site content',
+        details: errorMessage,
+        hint: 'Check DATABASE_URL is set in Vercel environment variables'
+      },
       { status: 500 }
     )
   }

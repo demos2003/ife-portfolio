@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Eye, EyeOff, Edit, Trash2, ExternalLink, Youtube, Smartphone, FileVideo, Loader2 } from "lucide-react"
 import { type WorkItem } from "@/lib/types"
+import { api } from "@/lib/api-client"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,17 +36,8 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
 
   const handleToggleVisibility = async (id: string, currentVisibility: boolean) => {
     try {
-      const response = await fetch(`/api/work/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ visible: !currentVisibility }),
-      })
-
-      if (response.ok) {
-        onWorkItemUpdated()
-      }
+      await api.patch(`/api/work/${id}`, { visible: !currentVisibility })
+      onWorkItemUpdated()
     } catch (error) {
       console.error('Error toggling visibility:', error)
     }
@@ -76,16 +68,9 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
   const handleDelete = async () => {
     if (deleteId) {
       try {
-        const response = await fetch(`/api/work/${deleteId}`, {
-          method: 'DELETE',
-        })
-
-        if (response.ok) {
-          onWorkItemDeleted()
-          setDeleteId(null)
-        } else {
-          console.error('Failed to delete work item')
-        }
+        await api.delete(`/api/work/${deleteId}`)
+        onWorkItemDeleted()
+        setDeleteId(null)
       } catch (error) {
         console.error('Error deleting work item:', error)
       }

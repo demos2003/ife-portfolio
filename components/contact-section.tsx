@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Upload, Mail, Phone, Download, Edit, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/lib/auth-store"
+import { api } from "@/lib/api-client"
 
 interface ContactContent {
   email: string
@@ -38,12 +39,9 @@ export function ContactSection() {
 
   const loadContent = async () => {
     try {
-      const response = await fetch('/api/site-content')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.contact) {
-          setContent(data.contact)
-        }
+      const data = await api.get<{ contact?: ContactContent }>('/api/site-content')
+      if (data.contact) {
+        setContent(data.contact)
       }
     } catch (error) {
       console.error('Failed to load contact content:', error)
@@ -54,21 +52,12 @@ export function ContactSection() {
 
   const saveContent = async (updatedContent: ContactContent) => {
     try {
-      const response = await fetch('/api/site-content', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'contact',
-          content: updatedContent
-        }),
+      await api.put('/api/site-content', {
+        type: 'contact',
+        content: updatedContent
       })
-
-      if (response.ok) {
-        setContent(updatedContent)
-        setIsEditing(false)
-      }
+      setContent(updatedContent)
+      setIsEditing(false)
     } catch (error) {
       console.error('Failed to save contact content:', error)
     }
@@ -84,25 +73,14 @@ export function ContactSection() {
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        const updatedContent = {
-          ...content,
-          resumeUrl: result.url
-        }
-        setContent(updatedContent)
-        setEditForm(updatedContent)
-        console.log('Resume uploaded:', result.url)
-      } else {
-        const errorData = await response.json()
-        console.error('Upload failed:', errorData.error)
-        alert('Failed to upload resume: ' + errorData.error)
+      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      const updatedContent = {
+        ...content,
+        resumeUrl: result.url
       }
+      setContent(updatedContent)
+      setEditForm(updatedContent)
+      console.log('Resume uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload resume')

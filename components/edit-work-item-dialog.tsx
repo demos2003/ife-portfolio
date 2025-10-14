@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { Upload, Loader2 } from "lucide-react"
 import { generateSocialMediaEmbed } from "@/lib/utils"
 import { type WorkItem } from "@/lib/types"
+import { api } from "@/lib/api-client"
 
 interface EditWorkItemDialogProps {
   open: boolean
@@ -90,21 +91,10 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setFormData((prev) => ({ ...prev, thumbnailUrl: result.url }))
-        setThumbnailPreview(result.url)
-        console.log('Custom thumbnail uploaded:', result.url)
-      } else {
-        const errorData = await response.json()
-        console.error('Upload failed:', errorData.error)
-        alert('Failed to upload thumbnail: ' + errorData.error)
-      }
+      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      setFormData((prev) => ({ ...prev, thumbnailUrl: result.url }))
+      setThumbnailPreview(result.url)
+      console.log('Custom thumbnail uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload thumbnail')
@@ -130,34 +120,19 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
     })
 
     try {
-      const response = await fetch(`/api/work/${workItem.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          type: formData.type,
-          url: formData.url || undefined, // Send undefined instead of empty string for optional URL
-          thumbnailUrl: formData.thumbnailUrl,
-          visible: formData.visible,
-          images: (formData.type === 'other' || formData.type === 'carousel') ? formData.images : undefined,
-        }),
+      const result = await api.put(`/api/work/${workItem.id}`, {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        url: formData.url || undefined, // Send undefined instead of empty string for optional URL
+        thumbnailUrl: formData.thumbnailUrl,
+        visible: formData.visible,
+        images: (formData.type === 'other' || formData.type === 'carousel') ? formData.images : undefined,
       })
-
-      console.log('Response status:', response.status)
-
-      if (response.ok) {
-        const result = await response.json()
-        console.log('Successfully updated work item:', result)
-        onWorkItemUpdated()
-      } else {
-        const errorText = await response.text()
-        console.error('Failed to update work item:', errorText)
-      }
+      console.log('Successfully updated work item:', result)
+      onWorkItemUpdated()
     } catch (error) {
-      console.error('Network error:', error)
+      console.error('Failed to update work item:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -172,14 +147,13 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
       for (const file of Array.from(files)) {
         const uploadFormData = new FormData()
         uploadFormData.append('file', file)
-        const response = await fetch('/api/upload', { method: 'POST', body: uploadFormData })
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('Upload failed:', errorData.error)
+        try {
+          const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+          uploadedUrls.push(result.url)
+        } catch (error) {
+          console.error('Upload failed:', error)
           continue
         }
-        const result = await response.json()
-        uploadedUrls.push(result.url)
       }
       if (uploadedUrls.length > 0) {
         setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }))

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // Validation schema for about me content
 const aboutMeSchema = z.object({
   content: z.string().min(1, 'Content is required and must not be empty'),
@@ -33,37 +36,29 @@ export async function PUT(request: NextRequest) {
     const existing = await prisma.siteContent.findFirst()
 
     let updated
-    if (!existing || !existing.about) {
-      // Create new site content with about section
-      updated = await prisma.siteContent.upsert({
-        where: { id: existing?.id || 'default' },
-        update: {
-          about: {
-            title: 'About Me',
-            description: content,
-            skills: [],
-          },
-          updatedAt: new Date(),
-        },
-        create: {
-          id: 'default',
-          about: {
-            title: 'About Me',
-            description: content,
-            skills: [],
-          },
-        },
-      })
-    } else {
-      // Update existing about description
+    if (existing) {
+      // Update existing record
       updated = await prisma.siteContent.update({
         where: { id: existing.id },
         data: {
           about: {
             ...existing.about,
+            title: existing.about?.title || 'About Me',
             description: content,
+            skills: existing.about?.skills || [],
           },
           updatedAt: new Date(),
+        },
+      })
+    } else {
+      // Create new record (Prisma will auto-generate the ObjectId)
+      updated = await prisma.siteContent.create({
+        data: {
+          about: {
+            title: 'About Me',
+            description: content,
+            skills: [],
+          },
         },
       })
     }
