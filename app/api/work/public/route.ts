@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getWorkItems } from '@/lib/work-store'
 
+// Force Node.js runtime for MongoDB compatibility
+export const runtime = 'nodejs'
+
 // GET /api/work/public - Get all visible work items for public display
 export async function GET() {
   try {

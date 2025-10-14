@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { updateWorkItem, deleteWorkItem, type WorkItem } from '@/lib/work-store'
 
+// Force Node.js runtime for MongoDB compatibility
+export const runtime = 'nodejs'
+
 // PATCH /api/work/[id] - Toggle visibility or update work item
 export async function PATCH(
   request: NextRequest,

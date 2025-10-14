@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadToCloudinary, validateCloudinaryConfig } from '@/lib/cloudinary'
 
+// Force Node.js runtime for Cloudinary compatibility
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     // Validate Cloudinary configuration

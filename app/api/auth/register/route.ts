@@ -4,6 +4,9 @@ import dbConnect from '@/lib/mongodb'
 import { UserModel } from '@/lib/models/user'
 import { z } from 'zod'
 
+// Force Node.js runtime for MongoDB compatibility
+export const runtime = 'nodejs'
+
 // Validation schema for registration
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),

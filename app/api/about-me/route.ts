@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSiteContent, upsertAboutMe } from '@/lib/content-store'
 
+// Force Node.js runtime for MongoDB compatibility
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     const content = await getSiteContent()
