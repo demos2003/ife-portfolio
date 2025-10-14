@@ -140,7 +140,7 @@ export function ContactSection() {
           <div className="text-center mb-16 animate-fade-in-up">
             <div className="flex items-center justify-center gap-4 mb-4">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-balance">
-                Let's Work Together
+                Let&apos;s Work Together
               </h2>
               {isAuthenticated && (
                 <Dialog open={isEditing} onOpenChange={setIsEditing}>
@@ -242,7 +242,7 @@ export function ContactSection() {
               )}
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-              Ready to bring your vision to life? Let's discuss your next project.
+              Ready to bring your vision to life? Let&apos;s discuss your next project.
             </p>
           </div>
 
@@ -271,7 +271,7 @@ export function ContactSection() {
                 <Phone className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Phone</h3>
-              <p className="text-muted-foreground mb-4">Let's have a quick chat</p>
+              <p className="text-muted-foreground mb-4">Let&apos;s have a quick chat</p>
               {content.phone ? (
                 <Button asChild variant="outline" className="w-full">
                   <a href={`tel:${content.phone}`}>
@@ -309,7 +309,7 @@ export function ContactSection() {
               <h3 className="text-2xl font-semibold mb-4">Ready to Start Your Project?</h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                 Whether you need video editing, content strategy, or creative direction,
-                I'm here to help bring your vision to life.
+                I&apos;m here to help bring your vision to life.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {content.email && (

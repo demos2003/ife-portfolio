@@ -11,8 +11,9 @@ export function FeaturedWork() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
 
   useEffect(() => {
-    const items = getWorkItems().slice(0, 3)
-    setWorkItems(items)
+    getWorkItems().then(items => {
+      setWorkItems(items.slice(0, 3))
+    })
   }, [])
 
   if (workItems.length === 0) {
@@ -43,7 +44,7 @@ export function FeaturedWork() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
             {workItems.map((item, index) => (
               <Card
-                key={item.id}
+                key={item._id}
                 className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-scale-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >

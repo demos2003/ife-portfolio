@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getWorkItems, type WorkItem } from '@/lib/work-store'
+import { NextResponse } from 'next/server'
+import { getWorkItems } from '@/lib/work-store'
 
 // GET /api/work/public - Get all visible work items for public display
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get all work items and filter for visible ones
     const workItems = await getWorkItems()

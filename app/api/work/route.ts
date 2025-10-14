@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getWorkItems, saveWorkItem, updateWorkItem, deleteWorkItem, type WorkItem } from '@/lib/work-store'
+import { getWorkItems, saveWorkItem } from '@/lib/work-store'
 
 // GET /api/work - Get all work items (global, not user-specific)
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get all work items (no user filtering needed)
     const workItems = await getWorkItems()

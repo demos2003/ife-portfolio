@@ -6,7 +6,7 @@ export async function GET() {
     const content = await getSiteContent()
     const aboutText = content.about?.description || "I'm a passionate video editor and content strategist with over 5 years of experience creating compelling visual stories. My journey began with a love for storytelling and has evolved into expertise in video production, content strategy, and brand development."
     return NextResponse.json({ content: aboutText })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to load About Me content' },
       { status: 500 }
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest) {
 
     const updated = await upsertAboutMe(body.content)
     return NextResponse.json({ success: true, content: updated })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update About Me content' },
       { status: 500 }

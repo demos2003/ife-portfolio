@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { updateWorkItem, deleteWorkItem, getWorkItems, type WorkItem } from '@/lib/work-store'
+import { updateWorkItem, deleteWorkItem, type WorkItem } from '@/lib/work-store'
 
 // PATCH /api/work/[id] - Toggle visibility or update work item
 export async function PATCH(
@@ -15,7 +15,7 @@ export async function PATCH(
     await updateWorkItem(id, { visible, ...updates })
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update work item' },
       { status: 500 }
@@ -47,13 +47,13 @@ export async function PUT(
     if (type !== undefined) updates.type = type
     if (url !== undefined) updates.url = url
     if (thumbnailUrl !== undefined) updates.thumbnailUrl = thumbnailUrl
-    if (images !== undefined) (updates as any).images = images
+    if (images !== undefined) updates.images = images
     if (visible !== undefined) updates.visible = visible
 
     await updateWorkItem(id, updates)
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update work item' },
       { status: 500 }
@@ -72,7 +72,7 @@ export async function DELETE(
     await deleteWorkItem(id)
 
     return NextResponse.json({ message: 'Work item deleted successfully' })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to delete work item' },
       { status: 500 }

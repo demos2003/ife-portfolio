@@ -243,7 +243,7 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
               </Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: any) => setFormData((prev) => ({ ...prev, type: value }))}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value as "youtube" | "short-form" | "other" | "carousel" }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />

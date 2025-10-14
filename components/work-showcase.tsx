@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo, X } from "lucide-react"
+import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo} from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { type WorkItem } from "@/lib/work-store"
 

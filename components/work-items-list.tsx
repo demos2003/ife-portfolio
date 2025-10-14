@@ -108,7 +108,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
           <FileVideo className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="text-muted-foreground">No work items yet. Click "Add Work Item" to get started.</p>
+        <p className="text-muted-foreground">No work items yet. Click &quot;Add Work Item&quot; to get started.</p>
       </div>
     )
   }

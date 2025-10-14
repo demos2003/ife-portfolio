@@ -1,34 +1,37 @@
-"use server"
+"use server";
 
-import dbConnect from './mongodb'
-import { WorkItemModel } from './models/work-item'
-import { generateSocialMediaEmbed } from './utils'
+import dbConnect from "./mongodb";
+import { WorkItemModel } from "./models/work-item";
+import { generateSocialMediaEmbed } from "./utils";
 
 export type WorkItem = {
-  _id: string  // MongoDB auto-generated ObjectId
-  title: string
-  description: string
-  type: "youtube" | "short-form" | "other" | "carousel"
-  url?: string
-  thumbnailUrl?: string
-  images?: string[]
-  visible?: boolean
-  createdAt: string
-}
+  _id: string; // MongoDB auto-generated ObjectId
+  title: string;
+  description: string;
+  type: "youtube" | "short-form" | "other" | "carousel";
+  url?: string;
+  thumbnailUrl?: string;
+  images?: string[];
+  visible?: boolean;
+  createdAt: string;
+};
 
-export async function getWorkItems(userId?: string): Promise<WorkItem[]> {
+export async function getWorkItems(): Promise<WorkItem[]> {
   try {
-    await dbConnect()
+    await dbConnect();
     // Get all work items (no user filtering)
-    const workItems = await WorkItemModel.find({}).sort({ createdAt: -1 })
-    console.log('Found work items in DB:', workItems.length)
-    console.log('Work items data:', workItems.map(item => ({
-      _id: item._id,
-      title: item.title,
-      type: item.type
-    })))
+    const workItems = await WorkItemModel.find({}).sort({ createdAt: -1 });
+    console.log("Found work items in DB:", workItems.length);
+    console.log(
+      "Work items data:",
+      workItems.map((item) => ({
+        _id: item._id,
+        title: item.title,
+        type: item.type,
+      }))
+    );
 
-    return workItems.map((item: any) => ({
+    return workItems.map((item) => ({
       _id: item._id.toString(),
       title: item.title,
       description: item.description,
@@ -38,24 +41,26 @@ export async function getWorkItems(userId?: string): Promise<WorkItem[]> {
       images: item.images,
       visible: item.visible,
       createdAt: item.createdAt,
-    }))
+    }));
   } catch (error) {
-    console.error('Error fetching work items:', error)
-    return []
+    console.error("Error fetching work items:", error);
+    return [];
   }
 }
 
-export async function saveWorkItem(item: Omit<WorkItem, "_id" | "createdAt">): Promise<WorkItem> {
+export async function saveWorkItem(
+  item: Omit<WorkItem, "_id" | "createdAt">
+): Promise<WorkItem> {
   try {
-    await dbConnect()
+    await dbConnect();
 
     // Auto-generate embed URL if it's a social media URL and no thumbnail provided
-    let thumbnailUrl = item.thumbnailUrl
+    let thumbnailUrl = item.thumbnailUrl;
     if (!thumbnailUrl && item.url) {
-      const generatedEmbed = generateSocialMediaEmbed(item.url)
+      const generatedEmbed = generateSocialMediaEmbed(item.url);
       if (generatedEmbed) {
-        thumbnailUrl = generatedEmbed
-        console.log('Generated social media embed:', thumbnailUrl)
+        thumbnailUrl = generatedEmbed;
+        console.log("Generated social media embed:", thumbnailUrl);
       }
     }
 
@@ -63,11 +68,11 @@ export async function saveWorkItem(item: Omit<WorkItem, "_id" | "createdAt">): P
       ...item,
       thumbnailUrl,
       createdAt: new Date().toISOString(),
-    })
-    console.log('Mongoose model data before save:', newItem.toObject())
+    });
+    console.log("Mongoose model data before save:", newItem.toObject());
 
-    await newItem.save()
-    console.log('Saved work item with _id:', newItem._id)
+    await newItem.save();
+    console.log("Saved work item with _id:", newItem._id);
 
     return {
       _id: newItem._id.toString(),
@@ -79,29 +84,32 @@ export async function saveWorkItem(item: Omit<WorkItem, "_id" | "createdAt">): P
       images: newItem.images,
       visible: newItem.visible,
       createdAt: newItem.createdAt,
-    }
+    };
   } catch (error) {
-    console.error('Error saving work item:', error)
-    throw error
+    console.error("Error saving work item:", error);
+    throw error;
   }
 }
 
-export async function updateWorkItem(id: string, updates: Partial<WorkItem>): Promise<void> {
+export async function updateWorkItem(
+  id: string,
+  updates: Partial<WorkItem>
+): Promise<void> {
   try {
-    await dbConnect()
-    await WorkItemModel.findByIdAndUpdate(id, updates)
+    await dbConnect();
+    await WorkItemModel.findByIdAndUpdate(id, updates);
   } catch (error) {
-    console.error('Error updating work item:', error)
-    throw error
+    console.error("Error updating work item:", error);
+    throw error;
   }
 }
 
 export async function deleteWorkItem(id: string): Promise<void> {
   try {
-    await dbConnect()
-    await WorkItemModel.findByIdAndDelete(id)
+    await dbConnect();
+    await WorkItemModel.findByIdAndDelete(id);
   } catch (error) {
-    console.error('Error deleting work item:', error)
-    throw error
+    console.error("Error deleting work item:", error);
+    throw error;
   }
 }

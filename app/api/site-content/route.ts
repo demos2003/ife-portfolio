@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const content = await getSiteContent()
     return NextResponse.json(content)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to load site content' },
       { status: 500 }
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
       { status: 400 }
     )
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update site content' },
       { status: 500 }
