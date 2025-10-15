@@ -38,7 +38,6 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
     type: "youtube" as "youtube" | "short-form" | "other" | "carousel",
     url: "",
     thumbnailUrl: "",
-    visible: true,
     images: [] as string[],
   })
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false)
@@ -54,7 +53,6 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
         type: workItem.type || "youtube",
         url: workItem.url || "",
         thumbnailUrl: workItem.thumbnailUrl || "",
-        visible: workItem.visible !== false,
         images: workItem.images || [],
       })
       setThumbnailPreview(workItem.thumbnailUrl || "")
@@ -115,7 +113,6 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
       type: formData.type,
       url: formData.url,
       thumbnailUrl: formData.thumbnailUrl,
-      visible: formData.visible,
       images: formData.images,
     })
 
@@ -126,7 +123,6 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
         type: formData.type,
         url: formData.url || undefined, // Send undefined instead of empty string for optional URL
         thumbnailUrl: formData.thumbnailUrl,
-        visible: formData.visible,
         images: (formData.type === 'other' || formData.type === 'carousel') ? formData.images : undefined,
       })
       console.log('Successfully updated work item:', result)
