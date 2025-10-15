@@ -17,7 +17,7 @@ export function FeaturedWork() {
       try {
         // Add timestamp to force cache busting
         const timestamp = new Date().getTime()
-        const items = await api.get<WorkItem[]>(`/api/work/public?t=${timestamp}`)
+        const items = await api.get<WorkItem[]>(`/api/work?t=${timestamp}`)
         setWorkItems(items.slice(0, 3))
       } catch (error) {
         console.error('Failed to load work items:', error)

@@ -35,7 +35,7 @@ export function WorkShowcase() {
     try {
       // Add timestamp to force cache busting
       const timestamp = new Date().getTime()
-      const items = await api.get<WorkItem[]>(`/api/work/public?t=${timestamp}`)
+      const items = await api.get<WorkItem[]>(`/api/work?t=${timestamp}`)
       setWorkItems(items)
       setIsLoaded(true)
     } catch (error) {
@@ -53,8 +53,8 @@ export function WorkShowcase() {
   }, [])
 
   const filteredItems = filter === "all"
-    ? workItems.filter(item => item.visible !== false) // Only show visible items
-    : workItems.filter((item) => item.type === filter && item.visible !== false)
+    ? workItems
+    : workItems.filter((item) => item.type === filter)
 
   const getIcon = (type: string) => {
     switch (type) {

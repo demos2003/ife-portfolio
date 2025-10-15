@@ -27,15 +27,25 @@ const workItemSchema = z.object({
   }
 )
 
-// GET /api/work - Get all work items (global, not user-specific)
+// GET /api/work - Get all visible work items for public display
 export async function GET() {
   try {
     const workItems = await prisma.workItem.findMany({
+      where: { visible: true },
       orderBy: { createdAt: 'desc' }
     })
 
-    console.log('Returning all work items, Count:', workItems.length)
-    return NextResponse.json(workItems)
+    console.log('Returning visible work items, Count:', workItems.length)
+
+    // Create response with cache control headers to prevent caching
+    const response = NextResponse.json(workItems)
+
+    // Prevent caching to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+
+    return response
   } catch (error) {
     console.error('API Error:', error)
     return NextResponse.json(
