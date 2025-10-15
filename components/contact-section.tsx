@@ -1,20 +1,26 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Upload, Mail, Phone, Download, Edit, Loader2 } from "lucide-react"
-import { useAuthStore } from "@/lib/auth-store"
-import { api } from "@/lib/api-client"
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Upload, Mail, Phone, Download, Edit, Loader2 } from "lucide-react";
+import { useAuthStore } from "@/lib/auth-store";
+import { api } from "@/lib/api-client";
 
 interface ContactContent {
-  email: string
-  phone: string
-  resumeUrl?: string
-  rateCardUrl?: string
+  email: string;
+  phone: string;
+  resumeUrl?: string;
+  rateCardUrl?: string;
 }
 
 export function ContactSection() {
@@ -22,150 +28,162 @@ export function ContactSection() {
     email: "",
     phone: "",
     resumeUrl: "",
-    rateCardUrl: ""
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
-  const [isUploadingResume, setIsUploadingResume] = useState(false)
+    rateCardUrl: "",
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [editForm, setEditForm] = useState<ContactContent>({
     email: "",
     phone: "",
     resumeUrl: "",
-    rateCardUrl: ""
-  })
+    rateCardUrl: "",
+  });
 
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    loadContent()
-  }, [])
+    loadContent();
+  }, []);
 
   const loadContent = async () => {
     try {
-      const data = await api.get<{ contact?: ContactContent }>('/api/site-content')
+      const data = await api.get<{ contact?: ContactContent }>(
+        "/api/site-content"
+      );
       if (data.contact) {
-        setContent(data.contact)
+        setContent(data.contact);
       }
     } catch (error) {
-      console.error('Failed to load contact content:', error)
+      console.error("Failed to load contact content:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const saveContent = async (updatedContent: ContactContent) => {
     try {
-      await api.put('/api/site-content', {
-        type: 'contact',
-        content: updatedContent
-      })
-      setContent(updatedContent)
-      setIsEditing(false)
+      await api.put("/api/site-content", {
+        type: "contact",
+        content: updatedContent,
+      });
+      setContent(updatedContent);
+      setIsEditing(false);
     } catch (error) {
-      console.error('Failed to save contact content:', error)
+      console.error("Failed to save contact content:", error);
     }
-  }
+  };
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setIsUploadingResume(true)
+    setIsUploadingResume(true);
 
     try {
-      const uploadFormData = new FormData()
-      uploadFormData.append('file', file)
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
 
-      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      const result = await api.upload<{ url: string }>(
+        "/api/upload",
+        uploadFormData
+      );
       const updatedContent = {
         ...content,
-        resumeUrl: result.url
-      }
-      setContent(updatedContent)
-      setEditForm(updatedContent)
-      console.log('Resume uploaded:', result.url)
+        resumeUrl: result.url,
+      };
+      setContent(updatedContent);
+      setEditForm(updatedContent);
+      console.log("Resume uploaded:", result.url);
     } catch (error) {
-      console.error('Upload error:', error)
-      alert('Failed to upload resume')
+      console.error("Upload error:", error);
+      alert("Failed to upload resume");
     } finally {
-      setIsUploadingResume(false)
+      setIsUploadingResume(false);
     }
-  }
+  };
 
   const handleDownloadResume = async () => {
-    if (!content.resumeUrl) return
+    if (!content.resumeUrl) return;
 
     try {
-      const response = await fetch(content.resumeUrl)
-      const blob = await response.blob()
+      const response = await fetch(content.resumeUrl);
+      const blob = await response.blob();
 
       // Create a temporary anchor element
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = url
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
 
-   
-      const filename = `Ifeoluwa Okusanya Resume`
+      const filename = `Ifeoluwa Okusanya Resume`;
 
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
 
       // Clean up
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error('Download failed:', error)
-      alert('Failed to download resume')
+      console.error("Download failed:", error);
+      alert("Failed to download resume");
     }
-  }
+  };
 
   const handleDownloadRateCard = async () => {
-    if (!content.rateCardUrl) return
+    if (!content.rateCardUrl) return;
 
     try {
-      const response = await fetch(content.rateCardUrl)
-      const blob = await response.blob()
+      const response = await fetch(content.rateCardUrl);
+      const blob = await response.blob();
 
       // Create a temporary anchor element
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = url
-      const filename = `Ifeoluwa Okusanya Rate Card`
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      const filename = `Ifeoluwa Okusanya Rate Card`;
 
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
 
       // Clean up
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error('Download failed:', error)
-      alert('Failed to download rate card')
+      console.error("Download failed:", error);
+      alert("Failed to download rate card");
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    saveContent(editForm)
-  }
+    e.preventDefault();
+    saveContent(editForm);
+  };
 
   if (isLoading) {
     return (
-      <section id="contact" className="relative py-20 md:py-32 overflow-hidden flex flex-col items-center">
+      <section
+        id="contact"
+        className="relative py-20 md:py-32 overflow-hidden flex flex-col items-center"
+      >
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-muted-foreground">Loading contact info...</span>
+          <span className="ml-2 text-muted-foreground">
+            Loading contact info...
+          </span>
         </div>
       </section>
-    )
+    );
   }
 
   return (
-    <section id="contact" className="relative py-20 md:py-32 overflow-hidden flex flex-col items-center">
+    <section
+      id="contact"
+      className="relative py-20 md:py-32 overflow-hidden flex flex-col items-center"
+    >
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-10 left-20 w-40 h-40 bg-primary/5 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-20 right-10 w-56 h-56 bg-primary/8 rounded-full blur-3xl animate-float-delayed" />
@@ -182,7 +200,11 @@ export function ContactSection() {
               {isAuthenticated && (
                 <Dialog open={isEditing} onOpenChange={setIsEditing}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="icon" className="opacity-50 hover:opacity-100">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="opacity-50 hover:opacity-100"
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
@@ -198,7 +220,12 @@ export function ContactSection() {
                             id="email"
                             type="email"
                             value={editForm.email}
-                            onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                            onChange={(e) =>
+                              setEditForm((prev) => ({
+                                ...prev,
+                                email: e.target.value,
+                              }))
+                            }
                             placeholder="your.email@example.com"
                             required
                           />
@@ -209,7 +236,12 @@ export function ContactSection() {
                             id="phone"
                             type="tel"
                             value={editForm.phone}
-                            onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                            onChange={(e) =>
+                              setEditForm((prev) => ({
+                                ...prev,
+                                phone: e.target.value,
+                              }))
+                            }
                             placeholder="+1 (555) 123-4567"
                             required
                           />
@@ -221,7 +253,9 @@ export function ContactSection() {
                             <div className="p-3 border rounded-lg bg-muted/30">
                               <div className="flex items-center gap-3 mb-2">
                                 <Upload className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium">Upload Resume</span>
+                                <span className="text-sm font-medium">
+                                  Upload Resume
+                                </span>
                               </div>
                               <div className="flex items-center gap-3">
                                 <Input
@@ -232,8 +266,18 @@ export function ContactSection() {
                                   className="cursor-pointer"
                                   disabled={isUploadingResume}
                                 />
-                                <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingResume} asChild>
-                                  <label htmlFor="resume" className="cursor-pointer">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  className="flex-shrink-0"
+                                  disabled={isUploadingResume}
+                                  asChild
+                                >
+                                  <label
+                                    htmlFor="resume"
+                                    className="cursor-pointer"
+                                  >
                                     {isUploadingResume ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
@@ -243,7 +287,9 @@ export function ContactSection() {
                                 </Button>
                               </div>
                               {isUploadingResume && (
-                                <p className="text-sm text-muted-foreground mt-2">Uploading resume...</p>
+                                <p className="text-sm text-muted-foreground mt-2">
+                                  Uploading resume...
+                                </p>
                               )}
                             </div>
 
@@ -251,10 +297,16 @@ export function ContactSection() {
                               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                                 <div className="flex items-center gap-2 text-green-700">
                                   <Download className="h-4 w-4" />
-                                  <span className="text-sm font-medium">Resume uploaded successfully</span>
+                                  <span className="text-sm font-medium">
+                                    Resume uploaded successfully
+                                  </span>
                                 </div>
                                 <div className="flex items-center gap-2 mt-2">
-                                  <Button variant="outline" size="sm" onClick={handleDownloadResume}>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDownloadResume}
+                                  >
                                     <Download className="h-4 w-4 mr-2" />
                                     Download Resume
                                   </Button>
@@ -266,12 +318,13 @@ export function ContactSection() {
                       </div>
 
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsEditing(false)}>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                        >
                           Cancel
                         </Button>
-                        <Button type="submit">
-                          Save Changes
-                        </Button>
+                        <Button type="submit">Save Changes</Button>
                       </div>
                     </form>
                   </DialogContent>
@@ -279,23 +332,26 @@ export function ContactSection() {
               )}
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-              Ready to bring your vision to life? Let&apos;s discuss your next project.
+              Ready to bring your vision to life? Let&apos;s discuss your next
+              project.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {/* Email Card */}
-            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
+            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in flex flex-col justify-between">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6 mx-auto">
                 <Mail className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Email</h3>
-              <p className="text-muted-foreground mb-4">Drop me a message anytime</p>
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-xl font-semibold mb-2">Email</h3>
+                <p className="text-muted-foreground mb-4">
+                  Drop me a message anytime
+                </p>
+              </div>
               {content.email ? (
                 <Button asChild variant="outline" className="w-full">
-                  <a href={`mailto:${content.email}`}>
-                    {content.email}
-                  </a>
+                  <a href={`mailto:${content.email}`}>{content.email}</a>
                 </Button>
               ) : (
                 <p className="text-muted-foreground">Email not configured</p>
@@ -303,17 +359,22 @@ export function ContactSection() {
             </Card>
 
             {/* Phone Card */}
-            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "100ms" }}>
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
+            <Card
+              className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in flex flex-col justify-between"
+              style={{ animationDelay: "100ms" }}
+            >
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6 mx-auto">
                 <Phone className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Phone</h3>
-              <p className="text-muted-foreground mb-4">Let&apos;s have a quick chat</p>
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-xl font-semibold mb-2">Phone</h3>
+                <p className="text-muted-foreground mb-4">
+                  Let&apos;s have a quick chat
+                </p>
+              </div>
               {content.phone ? (
                 <Button asChild variant="outline" className="w-full">
-                  <a href={`tel:${content.phone}`}>
-                    {content.phone}
-                  </a>
+                  <a href={`tel:${content.phone}`}>{content.phone}</a>
                 </Button>
               ) : (
                 <p className="text-muted-foreground">Phone not configured</p>
@@ -321,12 +382,19 @@ export function ContactSection() {
             </Card>
 
             {/* Resume Card */}
-            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "200ms" }}>
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
+            <Card
+              className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in flex flex-col justify-between"
+              style={{ animationDelay: "200ms" }}
+            >
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6 mx-auto">
                 <Download className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Resume</h3>
-              <p className="text-muted-foreground mb-4">Download my latest CV</p>
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-xl font-semibold mb-2">Resume</h3>
+                <p className="text-muted-foreground mb-4">
+                  Download my latest CV
+                </p>
+              </div>
               {content.resumeUrl ? (
                 <Button className="w-full" onClick={handleDownloadResume}>
                   <Download className="h-4 w-4 mr-2" />
@@ -338,12 +406,19 @@ export function ContactSection() {
             </Card>
 
             {/* Rate Card */}
-            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "300ms" }}>
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
+            <Card
+              className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in flex flex-col justify-between"
+              style={{ animationDelay: "300ms" }}
+            >
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6 mx-auto">
                 <Download className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Rate Card</h3>
-              <p className="text-muted-foreground mb-4">View my pricing & services</p>
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-xl font-semibold mb-2">Rate Card</h3>
+                <p className="text-muted-foreground mb-4">
+                  View my pricing & services
+                </p>
+              </div>
               {content.rateCardUrl ? (
                 <Button className="w-full" onClick={handleDownloadRateCard}>
                   <Download className="h-4 w-4 mr-2" />
@@ -358,10 +433,12 @@ export function ContactSection() {
           {/* Call to Action */}
           <div className="text-center animate-fade-in-up">
             <Card className="p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-              <h3 className="text-2xl font-semibold mb-4">Ready to Start Your Project?</h3>
+              <h3 className="text-2xl font-semibold mb-4">
+                Ready to Start Your Project?
+              </h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                Whether you need video editing, content strategy, or creative direction,
-                I&apos;m here to help bring your vision to life.
+                Whether you need video editing, content strategy, or creative
+                direction, I&apos;m here to help bring your vision to life.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {content.email && (
@@ -386,5 +463,5 @@ export function ContactSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

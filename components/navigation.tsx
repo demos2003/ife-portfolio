@@ -66,6 +66,12 @@ export function Navigation() {
             >
               Work
             </button>
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+            >
+              Rate Card
+            </button>
             {/* <ThemeToggle /> */}
           </div>
 
@@ -99,6 +105,12 @@ export function Navigation() {
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors text-left"
               >
                 Work
+              </button>
+              <button
+                onClick={() => scrollToSection("contact")}
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors text-left"
+              >
+                Rate Card
               </button>
             </div>
           </div>

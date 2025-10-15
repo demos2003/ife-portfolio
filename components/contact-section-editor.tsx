@@ -125,6 +125,11 @@ export function ContactSectionEditor() {
     setContent(prev => ({ ...prev, resumeUrl: "" }))
   }
 
+  const handleRemoveRateCard = () => {
+    setEditForm(prev => ({ ...prev, rateCardUrl: "" }))
+    setContent(prev => ({ ...prev, rateCardUrl: "" }))
+  }
+
   const handleDownloadResume = async () => {
     if (!content.resumeUrl) return
 
@@ -263,14 +268,7 @@ export function ContactSectionEditor() {
                       View Resume
                     </a>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(true)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    Edit 
-                  </Button>
+                 
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">Not uploaded</p>
@@ -290,14 +288,7 @@ export function ContactSectionEditor() {
                       View Rate Card
                     </a>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(true)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    Edit to Remove
-                  </Button>
+                 
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">Not uploaded</p>
@@ -438,10 +429,20 @@ export function ContactSectionEditor() {
                           <Download className="h-4 w-4" />
                           <span className="text-sm font-medium">Rate card uploaded successfully</span>
                         </div>
-                        <Button variant="outline" size="sm" onClick={handleDownloadRateCard} className="mt-2">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Rate Card
-                        </Button>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button variant="outline" size="sm" onClick={handleDownloadRateCard}>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Rate Card
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRemoveRateCard}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            Remove Rate Card
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
