@@ -13,13 +13,18 @@ export function FeaturedWork() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
 
   useEffect(() => {
-    api.get<WorkItem[]>('/api/work/public')
-      .then(items => {
+    const loadWorkItems = async () => {
+      try {
+        // Add timestamp to force cache busting
+        const timestamp = new Date().getTime()
+        const items = await api.get<WorkItem[]>(`/api/work/public?t=${timestamp}`)
         setWorkItems(items.slice(0, 3))
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Failed to load work items:', error)
-      })
+      }
+    }
+
+    loadWorkItems()
   }, [])
 
   if (workItems.length === 0) {

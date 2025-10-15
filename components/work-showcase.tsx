@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo} from "lucide-react"
+import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo, RefreshCw} from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { type WorkItem } from "@/lib/types"
 import { api } from "@/lib/api-client"
@@ -23,21 +23,32 @@ export function WorkShowcase() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
   const [filter, setFilter] = useState<string>("all")
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [previewItem, setPreviewItem] = useState<WorkItem | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
-  useEffect(() => {
-    const loadWorkItems = async () => {
-      try {
-        const items = await api.get<WorkItem[]>('/api/work/public')
-        setWorkItems(items)
-        setIsLoaded(true)
-      } catch (error) {
-        console.error('Failed to load work items:', error)
-        setIsLoaded(true)
-      }
+  const loadWorkItems = async (showRefreshing = false) => {
+    if (showRefreshing) {
+      setIsRefreshing(true)
     }
 
+    try {
+      // Add timestamp to force cache busting
+      const timestamp = new Date().getTime()
+      const items = await api.get<WorkItem[]>(`/api/work/public?t=${timestamp}`)
+      setWorkItems(items)
+      setIsLoaded(true)
+    } catch (error) {
+      console.error('Failed to load work items:', error)
+      setIsLoaded(true)
+    } finally {
+      if (showRefreshing) {
+        setIsRefreshing(false)
+      }
+    }
+  }
+
+  useEffect(() => {
     loadWorkItems()
   }, [])
 
@@ -98,6 +109,18 @@ export function WorkShowcase() {
                 {option.label}
               </Button>
             ))}
+
+            {/* Refresh Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => loadWorkItems(true)}
+              disabled={isRefreshing}
+              className="transition-all duration-300"
+              title="Refresh work items"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
 
           {/* Work Grid */}

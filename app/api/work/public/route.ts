@@ -12,7 +12,15 @@ export async function GET() {
 
     console.log('Public API - Returning visible work items:', visibleItems.length)
 
-    return NextResponse.json(visibleItems)
+    // Create response with cache control headers to prevent caching
+    const response = NextResponse.json(visibleItems)
+
+    // Prevent caching to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+
+    return response
   } catch (error) {
     console.error('Public API Error:', error)
     return NextResponse.json(

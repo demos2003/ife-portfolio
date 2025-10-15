@@ -38,13 +38,25 @@ export async function GET() {
     const content = await prisma.siteContent.findFirst()
 
     if (!content) {
-      return NextResponse.json({ about: null, contact: null })
+      const response = NextResponse.json({ about: null, contact: null })
+      // Prevent caching to ensure fresh data
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+      return response
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       about: content.about,
       contact: content.contact,
     })
+
+    // Prevent caching to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+
+    return response
   } catch (error) {
     console.error('GET Error:', error)
     return NextResponse.json(
