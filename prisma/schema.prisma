@@ -30,7 +30,6 @@ model WorkItem {
   url          String?
   thumbnailUrl String?
   images       String[]
-  visible      Boolean  @default(true)
   createdAt    String   // Stored as ISO string in existing data
 
   @@map("workitems")

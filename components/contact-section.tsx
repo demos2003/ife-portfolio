@@ -374,7 +374,10 @@ export function ContactSection() {
               </div>
               {content.phone ? (
                 <Button asChild variant="outline" className="w-full">
-                  <a href={`tel:${content.phone}`}>{content.phone}</a>
+                  <a href={`https://wa.me/${content.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                    <Phone className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </a>
                 </Button>
               ) : (
                 <p className="text-muted-foreground">Phone not configured</p>
@@ -451,9 +454,9 @@ export function ContactSection() {
                 )}
                 {content.phone && (
                   <Button asChild variant="outline" size="lg">
-                    <a href={`tel:${content.phone}`}>
+                    <a href={`https://wa.me/${content.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
                       <Phone className="h-4 w-4 mr-2" />
-                      Call Now
+                      WhatsApp
                     </a>
                   </Button>
                 )}

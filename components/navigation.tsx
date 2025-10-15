@@ -70,7 +70,7 @@ export function Navigation() {
               onClick={() => scrollToSection("contact")}
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
             >
-              Rate Card
+              Contact Me
             </button>
             {/* <ThemeToggle /> */}
           </div>
@@ -110,7 +110,7 @@ export function Navigation() {
                 onClick={() => scrollToSection("contact")}
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors text-left"
               >
-                Rate Card
+                Contact Me
               </button>
             </div>
           </div>

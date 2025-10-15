@@ -12,7 +12,6 @@ const workItemSchema = z.object({
   url: z.string().url().optional().or(z.literal('')),
   thumbnailUrl: z.string().url().optional().or(z.literal('')),
   images: z.array(z.string().url()).optional(),
-  visible: z.boolean().default(true),
 }).refine(
   (data) => {
     // URL is required for youtube and short-form
@@ -27,15 +26,14 @@ const workItemSchema = z.object({
   }
 )
 
-// GET /api/work - Get all visible work items for public display
+// GET /api/work - Get all work items for public display
 export async function GET() {
   try {
     const workItems = await prisma.workItem.findMany({
-      where: { visible: true },
       orderBy: { createdAt: 'desc' }
     })
 
-    console.log('Returning visible work items, Count:', workItems.length)
+    console.log('Returning all work items, Count:', workItems.length)
 
     // Create response with cache control headers to prevent caching
     const response = NextResponse.json(workItems)
@@ -72,7 +70,6 @@ export async function POST(request: NextRequest) {
         url: validatedData.url || null,
         thumbnailUrl: validatedData.thumbnailUrl || null,
         images: validatedData.images || [],
-        visible: validatedData.visible,
         createdAt: new Date().toISOString(),
       }
     })
