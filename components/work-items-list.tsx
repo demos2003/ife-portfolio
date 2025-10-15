@@ -200,7 +200,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
 
       {/* Preview Dialog */}
       <AlertDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <AlertDialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <AlertDialogContent className="max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Preview Work Item</AlertDialogTitle>
             <AlertDialogDescription>
