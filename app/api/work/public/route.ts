@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-// GET /api/work/public - Get all visible work items for public display
+// GET /api/work/public - Get all work items for public display
 export async function GET() {
   try {
-    // Get only visible work items using Prisma
+    // Get all work items using Prisma
     const visibleItems = await prisma.workItem.findMany({
-      where: { visible: true },
       orderBy: { createdAt: 'desc' }
     })
 
-    console.log('Public API - Returning visible work items:', visibleItems.length)
+    console.log('Public API - Returning work items:', visibleItems.length)
 
     // Create response with cache control headers to prevent caching
     const response = NextResponse.json(visibleItems)
