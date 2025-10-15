@@ -21,7 +21,8 @@ const aboutContentSchema = z.object({
 const contactContentSchema = z.object({
   email: z.string().email('Valid email is required'),
   phone: z.string().min(1, 'Phone is required'),
-  resumeUrl: z.string().url().optional().or(z.literal('')),
+  resumeUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  rateCardUrl: z.string().url().optional().or(z.literal('')).nullable(),
 })
 
 const updateSiteContentSchema = z.object({
@@ -100,7 +101,8 @@ export async function PUT(request: NextRequest) {
             contact: {
               email: contactData.email,
               phone: contactData.phone,
-              resumeUrl: contactData.resumeUrl || null,
+              resumeUrl: contactData.resumeUrl === "" ? undefined : contactData.resumeUrl,
+              rateCardUrl: contactData.rateCardUrl === "" ? undefined : contactData.rateCardUrl,
             },
             updatedAt: new Date(),
           },
@@ -113,7 +115,8 @@ export async function PUT(request: NextRequest) {
             contact: {
               email: contactData.email,
               phone: contactData.phone,
-              resumeUrl: contactData.resumeUrl || null,
+              resumeUrl: contactData.resumeUrl === "" ? undefined : contactData.resumeUrl,
+              rateCardUrl: contactData.rateCardUrl === "" ? undefined : contactData.rateCardUrl,
             },
           },
         })

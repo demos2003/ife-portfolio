@@ -14,21 +14,26 @@ interface ContactContent {
   email: string
   phone: string
   resumeUrl?: string
+  rateCardUrl?: string
 }
 
 export function ContactSectionEditor() {
   const [content, setContent] = useState<ContactContent>({
     email: "",
     phone: "",
-    resumeUrl: ""
+    resumeUrl: "",
+    rateCardUrl: ""
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isUploadingResume, setIsUploadingResume] = useState(false)
+  const [isUploadingRateCard, setIsUploadingRateCard] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [editForm, setEditForm] = useState<ContactContent>({
     email: "",
     phone: "",
-    resumeUrl: ""
+    resumeUrl: "",
+    rateCardUrl: ""
   })
 
   useEffect(() => {
@@ -50,6 +55,7 @@ export function ContactSectionEditor() {
   }
 
   const saveContent = async (updatedContent: ContactContent) => {
+    setIsSaving(true)
     try {
       await api.put('/api/site-content', {
         type: 'contact',
@@ -59,6 +65,8 @@ export function ContactSectionEditor() {
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to save contact content:', error)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -84,6 +92,96 @@ export function ContactSectionEditor() {
       alert('Failed to upload resume')
     } finally {
       setIsUploadingResume(false)
+    }
+  }
+
+  const handleRateCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingRateCard(true)
+
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+
+      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      const updatedContent = {
+        ...editForm,
+        rateCardUrl: result.url
+      }
+      setEditForm(updatedContent)
+      console.log('Rate card uploaded:', result.url)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload rate card')
+    } finally {
+      setIsUploadingRateCard(false)
+    }
+  }
+
+  const handleRemoveResume = () => {
+    setEditForm(prev => ({ ...prev, resumeUrl: "" }))
+    setContent(prev => ({ ...prev, resumeUrl: "" }))
+  }
+
+  const handleDownloadResume = async () => {
+    if (!content.resumeUrl) return
+
+    try {
+      const response = await fetch(content.resumeUrl)
+      const blob = await response.blob()
+
+      // Create a temporary anchor element
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+
+      // Set custom filename based on file type
+      const fileExtension = content.resumeUrl.split('.').pop()?.toLowerCase() || 'pdf'
+      const filename = `resume.${fileExtension}`
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Failed to download resume')
+    }
+  }
+
+  const handleDownloadRateCard = async () => {
+    if (!content.rateCardUrl) return
+
+    try {
+      const response = await fetch(content.rateCardUrl)
+      const blob = await response.blob()
+
+      // Create a temporary anchor element
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+
+      // Set custom filename based on file type
+      const fileExtension = content.rateCardUrl.split('.').pop()?.toLowerCase() || 'pdf'
+      const filename = `rate-card.${fileExtension}`
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Failed to download rate card')
     }
   }
 
@@ -164,6 +262,41 @@ export function ContactSectionEditor() {
                     <a href={content.resumeUrl} target="_blank" rel="noopener noreferrer">
                       View Resume
                     </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Edit 
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Not uploaded</p>
+              )}
+            </div>
+
+            <div className="p-3 bg-muted/30 rounded-lg mt-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Download className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Rate Card</span>
+              </div>
+              {content.rateCardUrl ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-green-600">Uploaded</Badge>
+                  <Button asChild variant="outline" size="sm">
+                    <a href={content.rateCardUrl} target="_blank" rel="noopener noreferrer">
+                      View Rate Card
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Edit to Remove
                   </Button>
                 </div>
               ) : (
@@ -248,11 +381,66 @@ export function ContactSectionEditor() {
                           <Download className="h-4 w-4" />
                           <span className="text-sm font-medium">Resume uploaded successfully</span>
                         </div>
-                        <Button asChild variant="outline" size="sm" className="mt-2">
-                          <a href={content.resumeUrl} target="_blank" rel="noopener noreferrer">
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button variant="outline" size="sm" onClick={handleDownloadResume}>
                             <Download className="h-4 w-4 mr-2" />
-                            View Resume
-                          </a>
+                            Download Resume
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRemoveResume}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            Remove Resume
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="rateCard">Rate Card/Pricing</Label>
+                  <div className="space-y-3">
+                    <div className="p-3 border rounded-lg bg-muted/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Upload Rate Card</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Input
+                          id="rateCard"
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          onChange={handleRateCardUpload}
+                          className="cursor-pointer"
+                          disabled={isUploadingRateCard}
+                        />
+                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingRateCard} asChild>
+                          <label htmlFor="rateCard" className="cursor-pointer">
+                            {isUploadingRateCard ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4" />
+                            )}
+                          </label>
+                        </Button>
+                      </div>
+                      {isUploadingRateCard && (
+                        <p className="text-sm text-muted-foreground mt-2">Uploading rate card...</p>
+                      )}
+                    </div>
+
+                    {content.rateCardUrl && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Download className="h-4 w-4" />
+                          <span className="text-sm font-medium">Rate card uploaded successfully</span>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={handleDownloadRateCard} className="mt-2">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Rate Card
                         </Button>
                       </div>
                     )}
@@ -261,12 +449,21 @@ export function ContactSectionEditor() {
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

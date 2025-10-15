@@ -131,6 +131,7 @@ export function EditWorkItemDialog({ open, onOpenChange, onWorkItemUpdated, work
       })
       console.log('Successfully updated work item:', result)
       onWorkItemUpdated()
+      onOpenChange(false) // Close the modal after successful update
     } catch (error) {
       console.error('Failed to update work item:', error)
     } finally {

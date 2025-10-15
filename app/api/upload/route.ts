@@ -24,26 +24,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Determine file type and set appropriate validation
+    const isImage = file.type.startsWith('image/')
+    const isDocument = file.type === 'application/pdf' ||
+                      file.type === 'application/msword' ||
+                      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+    if (!isImage && !isDocument) {
       return NextResponse.json(
-        { error: 'File must be an image' },
+        { error: 'File must be an image (JPG, PNG, WebP) or document (PDF, DOC, DOCX)' },
         { status: 400 }
       )
     }
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (5MB for images, 10MB for documents)
+    const maxSize = isDocument ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      const sizeLimit = isDocument ? '10MB' : '5MB'
       return NextResponse.json(
-        { error: 'File size must be less than 5MB' },
+        { error: `File size must be less than ${sizeLimit}` },
         { status: 400 }
       )
     }
 
-    console.log('Uploading file to Cloudinary:', file.name, 'Size:', file.size)
+    console.log('Uploading file to Cloudinary:', file.name, 'Size:', file.size, 'Type:', file.type)
 
-    // Upload to Cloudinary
-    const result = await uploadToCloudinary(file)
+    // Upload to Cloudinary with different options based on file type
+    const result = await uploadToCloudinary(file, isImage)
 
     console.log('Cloudinary upload successful:', result.secure_url)
 
@@ -58,7 +65,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Upload API error:', error)
     return NextResponse.json(
-      { error: 'Failed to upload image', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to upload file', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

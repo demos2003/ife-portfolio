@@ -139,19 +139,19 @@ export function WorkShowcase() {
                     aria-label={isShortForm ? `${item.title} - open project` : undefined}
                   >
                       {/* Media Preview */}
-                      <div className="relative aspect-video bg-muted/50 overflow-hidden">
+                      <div className="relative w-full h-48 bg-muted/50 overflow-hidden flex items-center justify-center">
                         {item.type === 'carousel' && Array.isArray(item.images) && item.images.length > 0 ? (
                           <Image
                             src={item.images[0]}
                             alt={item.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                           />
                         ) : item.thumbnailUrl && (item.thumbnailUrl.includes('embed') || item.thumbnailUrl.includes('instagram.com')) ? (
                           <iframe
                             src={item.thumbnailUrl}
                             title={item.title}
-                            className="w-full h-full"
+                            className="w-full h-full max-w-full max-h-full"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           />
@@ -160,7 +160,7 @@ export function WorkShowcase() {
                             src={item.thumbnailUrl}
                             alt={item.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -168,7 +168,7 @@ export function WorkShowcase() {
                           </div>
                         )}
 
-                      {/* Subtle vignette overlay for thumbnails with fixed aspect */}
+                      {/* Subtle vignette overlay for thumbnails */}
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/20" />
 
                       {/* Always-visible Play Button (YouTube-style) */}

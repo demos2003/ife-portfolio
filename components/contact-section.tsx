@@ -14,13 +14,15 @@ interface ContactContent {
   email: string
   phone: string
   resumeUrl?: string
+  rateCardUrl?: string
 }
 
 export function ContactSection() {
   const [content, setContent] = useState<ContactContent>({
     email: "",
     phone: "",
-    resumeUrl: ""
+    resumeUrl: "",
+    rateCardUrl: ""
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -28,7 +30,8 @@ export function ContactSection() {
   const [editForm, setEditForm] = useState<ContactContent>({
     email: "",
     phone: "",
-    resumeUrl: ""
+    resumeUrl: "",
+    rateCardUrl: ""
   })
 
   const { isAuthenticated } = useAuthStore()
@@ -86,6 +89,62 @@ export function ContactSection() {
       alert('Failed to upload resume')
     } finally {
       setIsUploadingResume(false)
+    }
+  }
+
+  const handleDownloadResume = async () => {
+    if (!content.resumeUrl) return
+
+    try {
+      const response = await fetch(content.resumeUrl)
+      const blob = await response.blob()
+
+      // Create a temporary anchor element
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+
+   
+      const filename = `Ifeoluwa Okusanya Resume`
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Failed to download resume')
+    }
+  }
+
+  const handleDownloadRateCard = async () => {
+    if (!content.rateCardUrl) return
+
+    try {
+      const response = await fetch(content.rateCardUrl)
+      const blob = await response.blob()
+
+      // Create a temporary anchor element
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+      const filename = `Ifeoluwa Okusanya Rate Card`
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+
+      // Clean up
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Failed to download rate card')
     }
   }
 
@@ -194,12 +253,12 @@ export function ContactSection() {
                                   <Download className="h-4 w-4" />
                                   <span className="text-sm font-medium">Resume uploaded successfully</span>
                                 </div>
-                                <Button asChild variant="outline" size="sm" className="mt-2">
-                                  <a href={content.resumeUrl} target="_blank" rel="noopener noreferrer">
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Button variant="outline" size="sm" onClick={handleDownloadResume}>
                                     <Download className="h-4 w-4 mr-2" />
-                                    View Resume
-                                  </a>
-                                </Button>
+                                    Download Resume
+                                  </Button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -224,9 +283,9 @@ export function ContactSection() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {/* Email Card */}
-            <Card className="p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in">
+            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
                 <Mail className="h-8 w-8" />
               </div>
@@ -244,7 +303,7 @@ export function ContactSection() {
             </Card>
 
             {/* Phone Card */}
-            <Card className="p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "100ms" }}>
+            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "100ms" }}>
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
                 <Phone className="h-8 w-8" />
               </div>
@@ -262,21 +321,36 @@ export function ContactSection() {
             </Card>
 
             {/* Resume Card */}
-            <Card className="p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "200ms" }}>
+            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "200ms" }}>
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
                 <Download className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Resume</h3>
               <p className="text-muted-foreground mb-4">Download my latest CV</p>
               {content.resumeUrl ? (
-                <Button asChild className="w-full">
-                  <a href={content.resumeUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Resume
-                  </a>
+                <Button className="w-full" onClick={handleDownloadResume}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Resume
                 </Button>
               ) : (
                 <p className="text-muted-foreground">Resume not uploaded</p>
+              )}
+            </Card>
+
+            {/* Rate Card */}
+            <Card className="py-8 px-4 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm animate-scale-in" style={{ animationDelay: "300ms" }}>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
+                <Download className="h-8 w-8" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Rate Card</h3>
+              <p className="text-muted-foreground mb-4">View my pricing & services</p>
+              {content.rateCardUrl ? (
+                <Button className="w-full" onClick={handleDownloadRateCard}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Rate Card
+                </Button>
+              ) : (
+                <p className="text-muted-foreground">Rate card not uploaded</p>
               )}
             </Card>
           </div>

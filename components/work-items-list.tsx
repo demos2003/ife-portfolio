@@ -33,6 +33,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
   const [editingItem, setEditingItem] = useState<WorkItem | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleToggleVisibility = async (id: string, currentVisibility: boolean) => {
     try {
@@ -67,12 +68,15 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
 
   const handleDelete = async () => {
     if (deleteId) {
+      setIsDeleting(true)
       try {
         await api.delete(`/api/work/${deleteId}`)
         onWorkItemDeleted()
         setDeleteId(null)
       } catch (error) {
         console.error('Error deleting work item:', error)
+      } finally {
+        setIsDeleting(false)
       }
     }
   }
@@ -391,12 +395,20 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

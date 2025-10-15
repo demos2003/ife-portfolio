@@ -60,6 +60,7 @@ export function AboutSectionEditor() {
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editingSkillIndex, setEditingSkillIndex] = useState<number | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [editForm, setEditForm] = useState({
     title: "",
     description: "",
@@ -84,6 +85,7 @@ export function AboutSectionEditor() {
   }
 
   const saveContent = async (updatedContent: AboutContent) => {
+    setIsSaving(true)
     try {
       await api.put('/api/site-content', {
         type: 'about',
@@ -94,6 +96,8 @@ export function AboutSectionEditor() {
       setEditingSkillIndex(null)
     } catch (error) {
       console.error('Failed to save about content:', error)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -315,14 +319,19 @@ export function AboutSectionEditor() {
                             </Select>
                           </div>
                           <div className="flex gap-2">
-                            <Button onClick={handleSaveSkill} size="sm">
-                              <Save className="h-4 w-4 mr-1" />
-                              Save
+                            <Button onClick={handleSaveSkill} size="sm" disabled={isSaving}>
+                              {isSaving ? (
+                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                              ) : (
+                                <Save className="h-4 w-4 mr-1" />
+                              )}
+                              {isSaving ? 'Saving...' : 'Save'}
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setEditingSkillIndex(null)}
+                              disabled={isSaving}
                             >
                               Cancel
                             </Button>
@@ -343,12 +352,21 @@ export function AboutSectionEditor() {
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>
                   Cancel
                 </Button>
-                <Button onClick={() => saveContent(content)}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                <Button onClick={() => saveContent(content)} disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
