@@ -9,15 +9,13 @@ import { Eye, Edit, Trash2, ExternalLink, Youtube, Smartphone, FileVideo, Loader
 import { type WorkItem } from "@/lib/types"
 import { api } from "@/lib/api-client"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { EditWorkItemDialog } from "@/components/edit-work-item-dialog"
 
 interface WorkItemsListProps {
@@ -199,14 +197,14 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
       </div>
 
       {/* Preview Dialog */}
-      <AlertDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <AlertDialogContent className="max-h-[90vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Preview Work Item</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto w-full !max-w-fit">
+          <DialogHeader>
+            <DialogTitle>Preview Work Item</DialogTitle>
+            <DialogDescription>
               This is how your work item will appear on the main site.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           {isPreviewLoading && (
             <div className="flex items-center justify-center py-12">
@@ -331,27 +329,31 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
             </div>
           )}
 
-          <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
               This action cannot be undone. This will permanently delete the work item from your portfolio.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? (
                 <>
@@ -361,10 +363,10 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
               ) : (
                 "Delete"
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Work Item Dialog */}
       <EditWorkItemDialog
