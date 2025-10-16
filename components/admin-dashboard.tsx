@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Video, Youtube, Smartphone, FileVideo, Loader2 } from "lucide-react"
+import { Plus, Video, Youtube, Smartphone, FileVideo, Loader2, Settings } from "lucide-react"
 import { type WorkItem } from "@/lib/types"
 import { WorkItemsList } from "@/components/work-items-list"
 import { AddWorkItemDialog } from "@/components/add-work-item-dialog"
@@ -12,6 +12,7 @@ import { AboutSectionEditor } from "./about-section-editor"
 import { ContactSectionEditor } from "./contact-section-editor"
 import { AboutMeEditor } from "./about-me-editor"
 import { api } from "@/lib/api-client"
+import Link from "next/link"
 
 export function AdminDashboard() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
@@ -72,14 +73,22 @@ export function AdminDashboard() {
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-2">Admin Dashboard</h1>
               <p className="text-muted-foreground">Manage your portfolio work items</p>
             </div>
-            <Button onClick={() => setIsDialogOpen(true)} size="lg" className="group" disabled={isLoadingWorkItems}>
-              {isLoadingWorkItems ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Plus className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" />
-              )}
-              {isLoadingWorkItems ? 'Loading...' : 'Add Work Item'}
-            </Button>
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="lg" className="group">
+                <Link href="/admin/settings">
+                  <Settings className="mr-2 h-5 w-5" />
+                  Settings
+                </Link>
+              </Button>
+              <Button onClick={() => setIsDialogOpen(true)} size="lg" className="group" disabled={isLoadingWorkItems}>
+                {isLoadingWorkItems ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" />
+                )}
+                {isLoadingWorkItems ? 'Loading...' : 'Add Work Item'}
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
