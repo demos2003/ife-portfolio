@@ -1,7 +1,4 @@
-/**
- * API Client utility for making HTTP requests to the API
- * Handles base URL configuration and provides type-safe methods
- */
+import { useAuthStore } from './auth-store'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type JsonValue = any
@@ -47,12 +44,27 @@ class ApiClient {
     const url = this.getUrl(path)
     const { body, ...restOptions } = options
 
+    // Check if user is authenticated and add token to headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(restOptions.headers as Record<string, string> | undefined),
+    }
+
+    // Add authentication header if available (client-side only)
+    if (typeof window !== 'undefined') {
+      try {
+        // Use the auth store to get headers if available
+        const authHeaders = useAuthStore.getState().getAuthHeaders()
+        Object.assign(headers, authHeaders)
+      } catch (error) {
+        // Ignore errors when getting auth headers
+        console.warn('Failed to get auth headers:', error)
+      }
+    }
+
     const config: RequestInit = {
       ...restOptions,
-      headers: {
-        'Content-Type': 'application/json',
-        ...restOptions.headers,
-      },
+      headers,
     }
 
     if (body) {

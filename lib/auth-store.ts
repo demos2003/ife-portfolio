@@ -17,6 +17,7 @@ interface AuthState {
   token: string | null
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
+  getAuthHeaders: () => Record<string, string>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -44,9 +45,30 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: () => set({ isAuthenticated: false, user: null, token: null }),
+      getAuthHeaders: () => {
+        // This will be implemented after the store is created to avoid circular reference
+        return { 'Content-Type': 'application/json' }
+      },
     }),
     {
       name: "auth-storage",
     },
   ),
 )
+
+// Implement getAuthHeaders method to avoid circular reference
+useAuthStore.setState((state) => ({
+  ...state,
+  getAuthHeaders: () => {
+    if (state.token) {
+      return {
+        'Authorization': `Bearer ${state.token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+    return {
+      'Authorization': '',
+      'Content-Type': 'application/json'
+    }
+  }
+}))
