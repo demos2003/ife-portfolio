@@ -18,12 +18,6 @@ export function HeroSection() {
     }
   }
 
-  const scrollToAbout = () => {
-    const element = document.getElementById("about")
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-    }
-  }
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
