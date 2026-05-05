@@ -12,7 +12,7 @@ class ApiClient {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+      this.baseUrl = window.location.origin
     } else {
       this.baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     }
