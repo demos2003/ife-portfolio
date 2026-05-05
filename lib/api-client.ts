@@ -11,12 +11,22 @@ class ApiClient {
   private baseUrl: string
 
   constructor() {
-    // In client components, use NEXT_PUBLIC_APP_URL
-    // In server components, this would be the server URL
     if (typeof window !== 'undefined') {
       this.baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
     } else {
       this.baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    }
+  }
+
+  private getStoredToken(): string | null {
+    if (typeof window === 'undefined') return null
+    try {
+      const raw = localStorage.getItem('auth-storage')
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      return parsed?.state?.token ?? null
+    } catch {
+      return null
     }
   }
 
@@ -44,27 +54,14 @@ class ApiClient {
     const url = this.getUrl(path)
     const { body, ...restOptions } = options
 
-    // Check if user is authenticated and add token to headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(restOptions.headers as Record<string, string> | undefined),
-    }
-
-    // Add authentication header if available (client-side only)
-    if (typeof window !== 'undefined') {
-      try {
-        // Use the auth store to get headers if available
-        const authHeaders = useAuthStore.getState().getAuthHeaders()
-        Object.assign(headers, authHeaders)
-      } catch (error) {
-        // Ignore errors when getting auth headers
-        console.warn('Failed to get auth headers:', error)
-      }
-    }
-
+    const token = this.getStoredToken()
     const config: RequestInit = {
       ...restOptions,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...restOptions.headers,
+      },
     }
 
     if (body) {
@@ -122,6 +119,7 @@ class ApiClient {
   async upload<T>(path: string, formData: FormData, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<T> {
     const url = this.getUrl(path)
     const { headers, ...restOptions } = options || {}
+    const token = this.getStoredToken()
 
     const response = await fetch(url, {
       ...restOptions,
@@ -129,6 +127,7 @@ class ApiClient {
       body: formData,
       // Don't set Content-Type header - browser will set it with boundary
       headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
     })

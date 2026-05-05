@@ -23,8 +23,8 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Video Editor & Content Strategist Portfolio",
-    template: "%s | Video Editor Portfolio"
+    default: "Ife's EditRoom",
+    template: "%s | Ife's EditRoom"
   },
   description: "Showcasing creative video editing and content strategy work",
   keywords: ["video editor", "content strategist", "portfolio", "video production", "content creation"],
@@ -38,21 +38,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: appUrl,
-    title: "Video Editor & Content Strategist Portfolio",
+    title: "Ife's EditRoom",
     description: "Showcasing creative video editing and content strategy work",
-    siteName: "Ife Portfolio",
+    siteName: "Ife's EditRoom",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Video Editor & Content Strategist Portfolio",
+        alt: "Ife's EditRoom",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Video Editor & Content Strategist Portfolio",
+    title: "Ife's EditRoom",
     description: "Showcasing creative video editing and content strategy work",
     images: ["/og-image.png"],
   },

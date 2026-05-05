@@ -1,95 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb, toDoc } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-middleware'
 import { z } from 'zod'
 
-// Validation schema for work items
 const workItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
-  type: z.enum(['youtube', 'short-form', 'other', 'carousel'], {
-    errorMap: () => ({ message: 'Invalid type. Must be: youtube, short-form, other, or carousel' })
-  }),
+  type: z.enum(['youtube', 'short-form', 'other', 'carousel']),
   url: z.string().url().optional().or(z.literal('')),
   thumbnailUrl: z.string().url().optional().or(z.literal('')),
   images: z.array(z.string().url()).optional(),
 }).refine(
   (data) => {
-    // URL is required for youtube and short-form
-    if ((data.type === 'youtube' || data.type === 'short-form') && !data.url) {
-      return false
-    }
+    if ((data.type === 'youtube' || data.type === 'short-form') && !data.url) return false
     return true
   },
-  {
-    message: 'URL is required for YouTube and Short Form content',
-    path: ['url'],
-  }
+  { message: 'URL is required for YouTube and Short Form content', path: ['url'] }
 )
 
-// GET /api/work - Get all work items for public display
 export async function GET() {
   try {
-    const workItems = await prisma.workItem.findMany({
-      orderBy: { createdAt: 'desc' }
-    })
-
-    console.log('Returning all work items, Count:', workItems.length)
-
-    // Create response with cache control headers to prevent caching
-    const response = NextResponse.json(workItems)
-
-    // Prevent caching to ensure fresh data
-    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('Expires', '0')
-
-    return response
+    const db = await getDb()
+    const items = await db.collection('workitems').find().sort({ createdAt: -1 }).toArray()
+    return NextResponse.json(items.map(toDoc))
   } catch (error) {
     console.error('API Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch work items' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch work items' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
+  const auth = requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+
   try {
     const body = await request.json()
-    console.log('POST request body:', body)
+    const data = workItemSchema.parse(body)
 
-    // Validate and parse the request body
-    const validatedData = workItemSchema.parse(body)
-
-    // Create new work item using Prisma
-    const newItem = await prisma.workItem.create({
-      data: {
-        title: validatedData.title,
-        description: validatedData.description,
-        type: validatedData.type,
-        url: validatedData.url || null,
-        thumbnailUrl: validatedData.thumbnailUrl || null,
-        images: validatedData.images || [],
-        createdAt: new Date().toISOString(),
-      }
+    const db = await getDb()
+    const result = await db.collection('workitems').insertOne({
+      title: data.title,
+      description: data.description,
+      type: data.type,
+      url: data.url || null,
+      thumbnailUrl: data.thumbnailUrl || null,
+      images: data.images || [],
+      visible: data.visible,
+      createdAt: new Date().toISOString(),
     })
 
-    console.log('Successfully created work item:', newItem)
-
-    return NextResponse.json(newItem, { status: 201 })
+    const newItem = await db.collection('workitems').findOne({ _id: result.insertedId })
+    return NextResponse.json(toDoc(newItem!), { status: 201 })
   } catch (error) {
-    console.error('POST API Error:', error)
-
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input data', details: error.errors }, { status: 400 })
     }
-
-    return NextResponse.json(
-      { error: 'Failed to create work item', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    )
+    console.error('POST Error:', error)
+    return NextResponse.json({ error: 'Failed to create work item' }, { status: 500 })
   }
 }

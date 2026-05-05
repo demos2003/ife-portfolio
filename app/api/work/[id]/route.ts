@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb, toDoc, ObjectId } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-middleware'
 import { z } from 'zod'
-import { Prisma } from '@prisma/client'
 
-// Validation schema for partial work item updates
 const updateWorkItemSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
@@ -14,123 +13,90 @@ const updateWorkItemSchema = z.object({
   visible: z.boolean().optional(),
 })
 
-// PATCH /api/work/[id] - Toggle visibility or update work item
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+async function getItem(id: string) {
+  try {
+    const db = await getDb()
+    return { db, oid: new ObjectId(id) }
+  } catch {
+    return null
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+
   try {
     const { id } = await params
+    const ctx = await getItem(id)
+    if (!ctx) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+
     const body = await request.json()
+    const data = updateWorkItemSchema.parse(body)
 
-    // Validate the update data
-    const validatedData = updateWorkItemSchema.parse(body)
+    const result = await ctx.db.collection('workitems').findOneAndUpdate(
+      { _id: ctx.oid },
+      { $set: data },
+      { returnDocument: 'after' }
+    )
 
-    // TODO: Verify the work item belongs to the authenticated user
-    const updatedItem = await prisma.workItem.update({
-      where: { id },
-      data: validatedData
-    })
-
-    return NextResponse.json({ success: true, data: updatedItem })
+    if (!result) return NextResponse.json({ error: 'Work item not found' }, { status: 404 })
+    return NextResponse.json({ success: true, data: toDoc(result) })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input data', details: error.errors }, { status: 400 })
+    }
     console.error('PATCH Error:', error)
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2025') {
-        return NextResponse.json(
-          { error: 'Work item not found' },
-          { status: 404 }
-        )
-      }
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to update work item' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to update work item' }, { status: 500 })
   }
 }
 
-// PUT /api/work/[id] - Update a work item
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+
   try {
     const { id } = await params
+    const ctx = await getItem(id)
+    if (!ctx) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+
     const body = await request.json()
+    const data = updateWorkItemSchema.parse(body)
 
-    // Validate the update data
-    const validatedData = updateWorkItemSchema.parse(body)
-
-    const updatedItem = await prisma.workItem.update({
-      where: { id },
-      data: validatedData
-    })
-
-    return NextResponse.json({ success: true, data: updatedItem })
-  } catch (error) {
-    console.error('PUT Error:', error)
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2025') {
-        return NextResponse.json(
-          { error: 'Work item not found' },
-          { status: 404 }
-        )
-      }
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to update work item' },
-      { status: 500 }
+    const result = await ctx.db.collection('workitems').findOneAndUpdate(
+      { _id: ctx.oid },
+      { $set: data },
+      { returnDocument: 'after' }
     )
+
+    if (!result) return NextResponse.json({ error: 'Work item not found' }, { status: 404 })
+    return NextResponse.json({ success: true, data: toDoc(result) })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input data', details: error.errors }, { status: 400 })
+    }
+    console.error('PUT Error:', error)
+    return NextResponse.json({ error: 'Failed to update work item' }, { status: 500 })
   }
 }
 
-// DELETE /api/work/[id] - Delete a work item
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+
   try {
     const { id } = await params
+    const ctx = await getItem(id)
+    if (!ctx) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
-    await prisma.workItem.delete({
-      where: { id }
-    })
+    const result = await ctx.db.collection('workitems').deleteOne({ _id: ctx.oid })
 
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: 'Work item not found' }, { status: 404 })
+    }
     return NextResponse.json({ message: 'Work item deleted successfully' })
   } catch (error) {
     console.error('DELETE Error:', error)
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2025') {
-        return NextResponse.json(
-          { error: 'Work item not found' },
-          { status: 404 }
-        )
-      }
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to delete work item' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to delete work item' }, { status: 500 })
   }
 }
