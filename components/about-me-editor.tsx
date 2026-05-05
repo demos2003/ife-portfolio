@@ -12,6 +12,7 @@ export function AboutMeEditor() {
   const [content, setContent] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [editContent, setEditContent] = useState("")
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export function AboutMeEditor() {
   }
 
   const saveContent = async () => {
+    setIsSaving(true)
     try {
       await api.put('/api/about-me', {
         content: editContent
@@ -39,6 +41,8 @@ export function AboutMeEditor() {
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to save About Me content:', error)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -125,12 +129,22 @@ export function AboutMeEditor() {
                   setIsEditing(false)
                   setEditContent(content)
                 }}
+                disabled={isSaving}
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </div>
           </form>

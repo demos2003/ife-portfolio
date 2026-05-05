@@ -5,19 +5,17 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Eye, EyeOff, Edit, Trash2, ExternalLink, Youtube, Smartphone, FileVideo, Loader2 } from "lucide-react"
+import { Eye, Edit, Trash2, ExternalLink, Youtube, Smartphone, FileVideo, Loader2 } from "lucide-react"
 import { type WorkItem } from "@/lib/types"
 import { api } from "@/lib/api-client"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { EditWorkItemDialog } from "@/components/edit-work-item-dialog"
 
 interface WorkItemsListProps {
@@ -33,15 +31,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
   const [editingItem, setEditingItem] = useState<WorkItem | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-
-  const handleToggleVisibility = async (id: string, currentVisibility: boolean) => {
-    try {
-      await api.patch(`/api/work/${id}`, { visible: !currentVisibility })
-      onWorkItemUpdated()
-    } catch (error) {
-      console.error('Error toggling visibility:', error)
-    }
-  }
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handlePreview = (item: WorkItem) => {
     if (item.type === "short-form" && item.url) {
@@ -67,12 +57,15 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
 
   const handleDelete = async () => {
     if (deleteId) {
+      setIsDeleting(true)
       try {
         await api.delete(`/api/work/${deleteId}`)
         onWorkItemDeleted()
         setDeleteId(null)
       } catch (error) {
         console.error('Error deleting work item:', error)
+      } finally {
+        setIsDeleting(false)
       }
     }
   }
@@ -109,7 +102,6 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
               <TableHead>Title</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>URL</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -166,21 +158,6 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                       <span className="text-muted-foreground text-sm">No URL</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {item.visible !== false ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
-                          <Eye className="h-3 w-3 mr-1" />
-                          Visible
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">
-                          <EyeOff className="h-3 w-3 mr-1" />
-                          Hidden
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       {/* Preview button - only show for non-short-form content */}
@@ -194,18 +171,6 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                           <Eye className="h-3 w-3" />
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleVisibility(item.id, item.visible !== false)}
-                        className="h-8 px-2"
-                      >
-                        {item.visible !== false ? (
-                          <EyeOff className="h-3 w-3" />
-                        ) : (
-                          <Eye className="h-3 w-3" />
-                        )}
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -232,14 +197,14 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
       </div>
 
       {/* Preview Dialog */}
-      <AlertDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <AlertDialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Preview Work Item</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto w-full !max-w-fit">
+          <DialogHeader>
+            <DialogTitle>Preview Work Item</DialogTitle>
+            <DialogDescription>
               This is how your work item will appear on the main site.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           {isPreviewLoading && (
             <div className="flex items-center justify-center py-12">
@@ -287,17 +252,6 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                         {React.createElement(getIcon(previewItem.type), { className: "h-3 w-3 mr-1" })}
                         {previewItem.type === "youtube" ? "YouTube" : previewItem.type === "short-form" ? "Short Form" : previewItem.type === "carousel" ? "Carousel": "Other"}
                       </Badge>
-                      {previewItem.visible !== false ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
-                          <Eye className="h-3 w-3 mr-1" />
-                          Visible
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">
-                          <EyeOff className="h-3 w-3 mr-1" />
-                          Hidden
-                        </Badge>
-                      )}
                     </div>
 
                     {/* Title */}
@@ -352,7 +306,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                   <div>
                     <span className="text-muted-foreground">Status:</span>
                     <span className="ml-2 font-medium">
-                      {previewItem.visible !== false ? "Published" : "Draft"}
+                      Published
                     </span>
                   </div>
                   {previewItem.url && (
@@ -375,32 +329,44 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
             </div>
           )}
 
-          <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
               This action cannot be undone. This will permanently delete the work item from your portfolio.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
             >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Work Item Dialog */}
       <EditWorkItemDialog

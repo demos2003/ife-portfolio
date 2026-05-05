@@ -8,7 +8,6 @@ export type WorkItem = {
   url?: string | null
   thumbnailUrl?: string | null
   images?: string[]
-  visible?: boolean
   createdAt: string
 }
 

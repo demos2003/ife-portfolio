@@ -1,7 +1,4 @@
-/**
- * API Client utility for making HTTP requests to the API
- * Handles base URL configuration and provides type-safe methods
- */
+import { useAuthStore } from './auth-store'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type JsonValue = any

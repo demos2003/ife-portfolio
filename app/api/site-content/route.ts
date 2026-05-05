@@ -20,7 +20,8 @@ const aboutContentSchema = z.object({
 const contactContentSchema = z.object({
   email: z.string().email('Valid email is required'),
   phone: z.string().min(1, 'Phone is required'),
-  resumeUrl: z.string().url().optional().or(z.literal('')),
+  resumeUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  rateCardUrl: z.string().url().optional().or(z.literal('')).nullable(),
 })
 
 const updateSiteContentSchema = z.object({

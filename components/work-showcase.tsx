@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo} from "lucide-react"
+import { ArrowRight, Loader2, Play, Youtube, Smartphone, FileVideo, RefreshCw} from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { type WorkItem } from "@/lib/types"
 import { api } from "@/lib/api-client"
@@ -23,27 +23,38 @@ export function WorkShowcase() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
   const [filter, setFilter] = useState<string>("all")
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [previewItem, setPreviewItem] = useState<WorkItem | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
-  useEffect(() => {
-    const loadWorkItems = async () => {
-      try {
-        const items = await api.get<WorkItem[]>('/api/work/public')
-        setWorkItems(items)
-        setIsLoaded(true)
-      } catch (error) {
-        console.error('Failed to load work items:', error)
-        setIsLoaded(true)
-      }
+  const loadWorkItems = async (showRefreshing = false) => {
+    if (showRefreshing) {
+      setIsRefreshing(true)
     }
 
+    try {
+      // Add timestamp to force cache busting
+      const timestamp = new Date().getTime()
+      const items = await api.get<WorkItem[]>(`/api/work?t=${timestamp}`)
+      setWorkItems(items)
+      setIsLoaded(true)
+    } catch (error) {
+      console.error('Failed to load work items:', error)
+      setIsLoaded(true)
+    } finally {
+      if (showRefreshing) {
+        setIsRefreshing(false)
+      }
+    }
+  }
+
+  useEffect(() => {
     loadWorkItems()
   }, [])
 
   const filteredItems = filter === "all"
-    ? workItems.filter(item => item.visible !== false) // Only show visible items
-    : workItems.filter((item) => item.type === filter && item.visible !== false)
+    ? workItems
+    : workItems.filter((item) => item.type === filter)
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -98,6 +109,18 @@ export function WorkShowcase() {
                 {option.label}
               </Button>
             ))}
+
+            {/* Refresh Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => loadWorkItems(true)}
+              disabled={isRefreshing}
+              className="transition-all duration-300"
+              title="Refresh work items"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
 
           {/* Work Grid */}
@@ -139,19 +162,19 @@ export function WorkShowcase() {
                     aria-label={isShortForm ? `${item.title} - open project` : undefined}
                   >
                       {/* Media Preview */}
-                      <div className="relative aspect-video bg-muted/50 overflow-hidden">
+                      <div className="relative w-full h-48 bg-muted/50 overflow-hidden flex items-center justify-center">
                         {item.type === 'carousel' && Array.isArray(item.images) && item.images.length > 0 ? (
                           <Image
                             src={item.images[0]}
                             alt={item.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                           />
                         ) : item.thumbnailUrl && (item.thumbnailUrl.includes('embed') || item.thumbnailUrl.includes('instagram.com')) ? (
                           <iframe
                             src={item.thumbnailUrl}
                             title={item.title}
-                            className="w-full h-full"
+                            className="w-full h-full max-w-full max-h-full"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           />
@@ -160,7 +183,7 @@ export function WorkShowcase() {
                             src={item.thumbnailUrl}
                             alt={item.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -168,7 +191,7 @@ export function WorkShowcase() {
                           </div>
                         )}
 
-                      {/* Subtle vignette overlay for thumbnails with fixed aspect */}
+                      {/* Subtle vignette overlay for thumbnails */}
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/20" />
 
                       {/* Always-visible Play Button (YouTube-style) */}

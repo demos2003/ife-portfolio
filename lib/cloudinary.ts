@@ -2,7 +2,7 @@ import { v2 as cloudinary } from 'cloudinary'
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: 'dalbpshky',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
@@ -17,27 +17,44 @@ export interface UploadResult {
 }
 
 /**
- * Upload image to Cloudinary
+ * Upload file to Cloudinary
  */
-export async function uploadToCloudinary(file: File): Promise<UploadResult> {
+export async function uploadToCloudinary(file: File, isImage: boolean = true): Promise<UploadResult> {
   try {
     // Convert File to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Upload to Cloudinary with specific options for portfolio thumbnails
+    // Determine resource type based on file type
+    let resourceType: 'image' | 'raw' | 'auto' = 'auto'
+    if (isImage) {
+      resourceType = 'image'
+    } else if (file.type === 'application/pdf' || 
+               file.type.includes('document') || 
+               file.type.includes('text')) {
+      resourceType = 'raw'
+    }
+
+    // Upload to Cloudinary with different options based on file type
+    const uploadOptions = {
+      folder: isImage ? 'portfolio-thumbnails' : 'portfolio-documents',
+      resource_type: resourceType,
+      access_mode:'public'
+    }
+
+    // Apply image-specific transformations only for images
+    if (isImage) {
+      // @ts-expect-error - Cloudinary transformation types are complex
+      uploadOptions.transformation = [
+        { width: 1600, crop: 'limit' },
+        { quality: 'auto' },
+        { format: 'webp' }
+      ]
+    }
+
     const result = await new Promise<UploadResult>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        {
-          folder: 'portfolio-thumbnails',
-          // Preserve original aspect ratio: limit by width, no forced height/crop
-          transformation: [
-            { width: 1600, crop: 'limit' },
-            { quality: 'auto' },
-            { format: 'webp' }
-          ],
-          resource_type: 'image',
-        },
+        uploadOptions,
         (error, result) => {
           if (error) {
             reject(error)
@@ -54,7 +71,7 @@ export async function uploadToCloudinary(file: File): Promise<UploadResult> {
     return result
   } catch (error) {
     console.error('Cloudinary upload error:', error)
-    throw new Error('Failed to upload image to Cloudinary')
+    throw new Error('Failed to upload file to Cloudinary')
   }
 }
 
@@ -89,7 +106,7 @@ export function getOptimizedImageUrl(publicId: string, options?: {
 
   const transformString = transformations.length > 0 ? transformations.join(',') : ''
 
-  return `https://res.cloudinary.com/dalbpshky/image/upload/${transformString}/${publicId}`
+  return `https://res.cloudinary.com/dalbpshky/raw/upload/${transformString}/${publicId}`
 }
 
 /**
