@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Edit, Loader2, Save, User } from "lucide-react"
+import { api } from "@/lib/api-client"
 
 export function AboutMeEditor() {
   const [content, setContent] = useState("")
@@ -19,12 +20,9 @@ export function AboutMeEditor() {
 
   const loadContent = async () => {
     try {
-      const response = await fetch('/api/about-me')
-      if (response.ok) {
-        const data = await response.json()
-        setContent(data.content || "")
-        setEditContent(data.content || "")
-      }
+      const data = await api.get<{ content?: string }>('/api/about-me')
+      setContent(data.content || "")
+      setEditContent(data.content || "")
     } catch (error) {
       console.error('Failed to load About Me content:', error)
     } finally {
@@ -34,20 +32,11 @@ export function AboutMeEditor() {
 
   const saveContent = async () => {
     try {
-      const response = await fetch('/api/about-me', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: editContent
-        }),
+      await api.put('/api/about-me', {
+        content: editContent
       })
-
-      if (response.ok) {
-        setContent(editContent)
-        setIsEditing(false)
-      }
+      setContent(editContent)
+      setIsEditing(false)
     } catch (error) {
       console.error('Failed to save About Me content:', error)
     }

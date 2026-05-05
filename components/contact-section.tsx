@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Upload, Mail, Phone, Download, Edit, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/lib/auth-store"
+import { api } from "@/lib/api-client"
 
 interface ContactContent {
   email: string
@@ -38,12 +39,9 @@ export function ContactSection() {
 
   const loadContent = async () => {
     try {
-      const response = await fetch('/api/site-content')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.contact) {
-          setContent(data.contact)
-        }
+      const data = await api.get<{ contact?: ContactContent }>('/api/site-content')
+      if (data.contact) {
+        setContent(data.contact)
       }
     } catch (error) {
       console.error('Failed to load contact content:', error)
@@ -54,21 +52,12 @@ export function ContactSection() {
 
   const saveContent = async (updatedContent: ContactContent) => {
     try {
-      const response = await fetch('/api/site-content', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'contact',
-          content: updatedContent
-        }),
+      await api.put('/api/site-content', {
+        type: 'contact',
+        content: updatedContent
       })
-
-      if (response.ok) {
-        setContent(updatedContent)
-        setIsEditing(false)
-      }
+      setContent(updatedContent)
+      setIsEditing(false)
     } catch (error) {
       console.error('Failed to save contact content:', error)
     }
@@ -84,25 +73,14 @@ export function ContactSection() {
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        const updatedContent = {
-          ...content,
-          resumeUrl: result.url
-        }
-        setContent(updatedContent)
-        setEditForm(updatedContent)
-        console.log('Resume uploaded:', result.url)
-      } else {
-        const errorData = await response.json()
-        console.error('Upload failed:', errorData.error)
-        alert('Failed to upload resume: ' + errorData.error)
+      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      const updatedContent = {
+        ...content,
+        resumeUrl: result.url
       }
+      setContent(updatedContent)
+      setEditForm(updatedContent)
+      console.log('Resume uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload resume')
@@ -140,7 +118,7 @@ export function ContactSection() {
           <div className="text-center mb-16 animate-fade-in-up">
             <div className="flex items-center justify-center gap-4 mb-4">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-balance">
-                Let's Work Together
+                Let&apos;s Work Together
               </h2>
               {isAuthenticated && (
                 <Dialog open={isEditing} onOpenChange={setIsEditing}>
@@ -242,7 +220,7 @@ export function ContactSection() {
               )}
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
-              Ready to bring your vision to life? Let's discuss your next project.
+              Ready to bring your vision to life? Let&apos;s discuss your next project.
             </p>
           </div>
 
@@ -271,7 +249,7 @@ export function ContactSection() {
                 <Phone className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Phone</h3>
-              <p className="text-muted-foreground mb-4">Let's have a quick chat</p>
+              <p className="text-muted-foreground mb-4">Let&apos;s have a quick chat</p>
               {content.phone ? (
                 <Button asChild variant="outline" className="w-full">
                   <a href={`tel:${content.phone}`}>
@@ -309,7 +287,7 @@ export function ContactSection() {
               <h3 className="text-2xl font-semibold mb-4">Ready to Start Your Project?</h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                 Whether you need video editing, content strategy, or creative direction,
-                I'm here to help bring your vision to life.
+                I&apos;m here to help bring your vision to life.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {content.email && (

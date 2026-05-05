@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  firstName String
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+// Work item model for portfolio content
+model WorkItem {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  type         String   // "youtube" | "short-form" | "other" | "carousel"
+  url          String?
+  thumbnailUrl String?
+  images       String[]
+  visible      Boolean  @default(true)
+  createdAt    String   // Stored as ISO string in existing data
+
+  @@map("workitems")
+}
+
+// Site content model for about and contact information
+model SiteContent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  about     About?
+  contact   Contact?
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("sitecontents")
+}
+
+// Embedded type for About content
+type About {
+  title       String
+  description String
+  skills      Skill[]
+}
+
+// Embedded type for Skills within About
+type Skill {
+  title       String
+  description String
+  icon        String
+}
+
+// Embedded type for Contact content
+type Contact {
+  email     String
+  phone     String
+  resumeUrl String?
+}

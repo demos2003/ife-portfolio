@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import dbConnect from '@/lib/mongodb'
-import { UserModel } from '@/lib/models/user'
+import prisma from '@/lib/prisma'
+import { signToken } from '@/lib/jwt'
 import { z } from 'zod'
 
 // Validation schema for login
@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, password } = loginSchema.parse(body)
 
-    // Connect to database
-    await dbConnect()
+    // Find user by email using Prisma
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    })
 
-    // Find user by email
-    const user = await UserModel.findOne({ email })
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
@@ -37,15 +37,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // In a real app, you'd generate a JWT token here
-    const token = 'authenticated' // Simple token for demo
+    const token = signToken({ userId: user.id, email: user.email })
 
     return NextResponse.json({
       success: true,
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         email: user.email,
         firstName: user.firstName,
         createdAt: user.createdAt,

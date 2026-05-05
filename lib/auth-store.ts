@@ -2,6 +2,7 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { api } from "@/lib/api-client"
 
 interface User {
   id: string
@@ -20,23 +21,15 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       isAuthenticated: false,
       user: null,
       token: null,
       login: async (email: string, password: string) => {
         try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-          })
+          const data = await api.post<{ success: boolean; user: User; token: string }>('/api/auth/login', { email, password })
 
-          const data = await response.json()
-
-          if (response.ok && data.success) {
+          if (data.success) {
             set({
               isAuthenticated: true,
               user: data.user,

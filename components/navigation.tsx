@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -36,9 +37,11 @@ export function Navigation() {
             onClick={() => scrollToSection("hero")}
             className="flex items-center gap-2 text-xl md:text-2xl font-serif font-bold text-primary transition-colors hover:opacity-80"
           >
-            <img
+            <Image
               src="/IfeoluwaLogo.png"
               alt="Ifeoluwa Logo"
+              width={120}
+              height={80}
               className="h-20 w-auto md:h-30"
             />
           </button>

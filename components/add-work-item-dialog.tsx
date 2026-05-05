@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,8 +19,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Upload, Loader2 } from "lucide-react"
-import { useAuthStore } from "@/lib/auth-store"
 import { generateSocialMediaEmbed } from "@/lib/utils"
+import { api } from "@/lib/api-client"
 
 interface AddWorkItemDialogProps {
   open: boolean
@@ -40,8 +41,6 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false)
   const [isUploadingImages, setIsUploadingImages] = useState(false)
   const [thumbnailPreview, setThumbnailPreview] = useState<string>("")
-
-  const { user } = useAuthStore()
 
   const handleUrlChange = (value: string) => {
     setFormData((prev) => ({ ...prev, url: value }))
@@ -73,21 +72,10 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setFormData((prev) => ({ ...prev, thumbnailUrl: result.url }))
-        setThumbnailPreview(result.url)
-        console.log('Custom thumbnail uploaded:', result.url)
-      } else {
-        const errorData = await response.json()
-        console.error('Upload failed:', errorData.error)
-        alert('Failed to upload thumbnail: ' + errorData.error)
-      }
+      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      setFormData((prev) => ({ ...prev, thumbnailUrl: result.url }))
+      setThumbnailPreview(result.url)
+      console.log('Custom thumbnail uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload thumbnail')
@@ -110,45 +98,29 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
     })
 
     try {
-      const response = await fetch('/api/work', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          type: formData.type,
-          url: formData.url || undefined, // Send undefined instead of empty string for optional URL
-          thumbnailUrl: formData.thumbnailUrl,
-          images: (formData.type === 'other' || formData.type === 'carousel') ? formData.images : undefined,
-        }),
+      const result = await api.post('/api/work', {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        url: formData.url || undefined, // Send undefined instead of empty string for optional URL
+        thumbnailUrl: formData.thumbnailUrl,
+        images: (formData.type === 'other' || formData.type === 'carousel') ? formData.images : undefined,
       })
+      console.log('Successfully created work item:', result)
 
-      console.log('Response status:', response.status)
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
-
-      if (response.ok) {
-        const result = await response.json()
-        console.log('Successfully created work item:', result)
-
-        // Reset form
-        setFormData({
-          title: "",
-          description: "",
-          type: "youtube",
-          url: "",
-          thumbnailUrl: "",
-          images: [],
-        })
-        setThumbnailPreview("")
-        onWorkItemAdded()
-      } else {
-        const errorText = await response.text()
-        console.error('Failed to create work item:', errorText)
-      }
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        type: "youtube",
+        url: "",
+        thumbnailUrl: "",
+        images: [],
+      })
+      setThumbnailPreview("")
+      onWorkItemAdded()
     } catch (error) {
-      console.error('Network error:', error)
+      console.error('Failed to create work item:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -163,14 +135,13 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
       for (const file of Array.from(files)) {
         const uploadFormData = new FormData()
         uploadFormData.append('file', file)
-        const response = await fetch('/api/upload', { method: 'POST', body: uploadFormData })
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('Upload failed:', errorData.error)
+        try {
+          const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+          uploadedUrls.push(result.url)
+        } catch (error) {
+          console.error('Upload failed:', error)
           continue
         }
-        const result = await response.json()
-        uploadedUrls.push(result.url)
       }
       if (uploadedUrls.length > 0) {
         setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }))
@@ -233,7 +204,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
               </Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: any) => setFormData((prev) => ({ ...prev, type: value }))}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value as "youtube" | "short-form" | "other" | "carousel" }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -324,10 +295,11 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
                           allowFullScreen
                         />
                       ) : (
-                        <img
+                        <Image
                           src={thumbnailPreview || "/placeholder.svg"}
                           alt="Thumbnail preview"
-                          className="w-full h-full object-cover object-center"
+                          fill
+                          className="object-cover object-center"
                         />
                       )}
                     </div>
@@ -385,7 +357,7 @@ export function AddWorkItemDialog({ open, onOpenChange, onWorkItemAdded }: AddWo
                   <div className="grid grid-cols-3 gap-3">
                     {formData.images.map((img, idx) => (
                       <div key={`carousel-img-${idx}`} className="relative aspect-video w-full rounded-lg overflow-hidden border border-border">
-                        <img src={img} alt={`Carousel ${idx + 1}`} className="w-full h-full object-cover" />
+                        <Image src={img} alt={`Carousel ${idx + 1}`} fill className="object-cover" />
                         <Button
                           type="button"
                           variant="destructive"

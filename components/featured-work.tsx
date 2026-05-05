@@ -4,15 +4,22 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Play } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { useEffect, useState } from "react"
-import { getWorkItems, type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
+import { api } from "@/lib/api-client"
 
 export function FeaturedWork() {
   const [workItems, setWorkItems] = useState<WorkItem[]>([])
 
   useEffect(() => {
-    const items = getWorkItems().slice(0, 3)
-    setWorkItems(items)
+    api.get<WorkItem[]>('/api/work/public')
+      .then(items => {
+        setWorkItems(items.slice(0, 3))
+      })
+      .catch(error => {
+        console.error('Failed to load work items:', error)
+      })
   }, [])
 
   if (workItems.length === 0) {
@@ -49,10 +56,11 @@ export function FeaturedWork() {
               >
                 <div className="relative aspect-video bg-muted overflow-hidden">
                   {item.thumbnailUrl ? (
-                    <img
+                    <Image
                       src={item.thumbnailUrl || "/placeholder.svg"}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -70,7 +78,7 @@ export function FeaturedWork() {
                   </h3>
                   <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{item.description}</p>
                   <Button asChild variant="ghost" size="sm" className="group/btn">
-                    <a href={item.url} target="_blank" rel="noopener noreferrer">
+                    <a href={item.url || '#'} target="_blank" rel="noopener noreferrer">
                       View Project
                       <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                     </a>

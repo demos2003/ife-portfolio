@@ -1,11 +1,13 @@
 "use client"
 
 import React, { useState } from "react"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Eye, EyeOff, Edit, Trash2, ExternalLink, Youtube, Smartphone, FileVideo, Loader2 } from "lucide-react"
-import { type WorkItem } from "@/lib/work-store"
+import { type WorkItem } from "@/lib/types"
+import { api } from "@/lib/api-client"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,17 +36,8 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
 
   const handleToggleVisibility = async (id: string, currentVisibility: boolean) => {
     try {
-      const response = await fetch(`/api/work/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ visible: !currentVisibility }),
-      })
-
-      if (response.ok) {
-        onWorkItemUpdated()
-      }
+      await api.patch(`/api/work/${id}`, { visible: !currentVisibility })
+      onWorkItemUpdated()
     } catch (error) {
       console.error('Error toggling visibility:', error)
     }
@@ -75,16 +68,9 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
   const handleDelete = async () => {
     if (deleteId) {
       try {
-        const response = await fetch(`/api/work/${deleteId}`, {
-          method: 'DELETE',
-        })
-
-        if (response.ok) {
-          onWorkItemDeleted()
-          setDeleteId(null)
-        } else {
-          console.error('Failed to delete work item')
-        }
+        await api.delete(`/api/work/${deleteId}`)
+        onWorkItemDeleted()
+        setDeleteId(null)
       } catch (error) {
         console.error('Error deleting work item:', error)
       }
@@ -108,7 +94,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
           <FileVideo className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="text-muted-foreground">No work items yet. Click "Add Work Item" to get started.</p>
+        <p className="text-muted-foreground">No work items yet. Click &quot;Add Work Item&quot; to get started.</p>
       </div>
     )
   }
@@ -131,9 +117,9 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
             {workItems.map((item) => {
               const Icon = getIcon(item.type)
               return (
-                <TableRow key={item._id}>
+                <TableRow key={item.id}>
                   <TableCell>
-                    <div className="w-16 h-10 rounded overflow-hidden bg-muted">
+                    <div className="relative w-16 h-10 rounded overflow-hidden bg-muted">
                       {item.thumbnailUrl && (item.thumbnailUrl.includes('embed') || item.thumbnailUrl.includes('instagram.com')) ? (
                         <iframe
                           src={item.thumbnailUrl}
@@ -143,10 +129,11 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         />
                       ) : item.thumbnailUrl ? (
-                        <img
+                        <Image
                           src={item.thumbnailUrl}
                           alt={item.title}
-                          className="w-full h-full object-cover object-center"
+                          fill
+                          className="object-cover object-center"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -210,7 +197,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleToggleVisibility(item._id, item.visible !== false)}
+                        onClick={() => handleToggleVisibility(item.id, item.visible !== false)}
                         className="h-8 px-2"
                       >
                         {item.visible !== false ? (
@@ -230,7 +217,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setDeleteId(item._id)}
+                        onClick={() => setDeleteId(item.id)}
                         className="h-8 px-2 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -268,7 +255,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Thumbnail/Video Section */}
                   <div className="flex-shrink-0">
-                    <div className="w-full lg:w-80 h-48 lg:h-52 rounded-lg overflow-hidden bg-muted">
+                    <div className="relative w-full lg:w-80 h-48 lg:h-52 rounded-lg overflow-hidden bg-muted">
                       {previewItem.thumbnailUrl && (previewItem.thumbnailUrl.includes('embed') || previewItem.thumbnailUrl.includes('instagram.com')) ? (
                         <iframe
                           src={previewItem.thumbnailUrl}
@@ -278,10 +265,11 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         />
                       ) : previewItem.thumbnailUrl ? (
-                        <img
+                        <Image
                           src={previewItem.thumbnailUrl}
                           alt={previewItem.title}
-                          className="w-full h-full object-cover object-center"
+                          fill
+                          className="object-cover object-center"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
@@ -340,7 +328,7 @@ export function WorkItemsList({ workItems, onWorkItemDeleted, onWorkItemUpdated 
                     {/* Action Button */}
                     <div className="pt-4">
                       <Button asChild variant="outline">
-                        <a href={previewItem.url} target="_blank" rel="noopener noreferrer">
+                        <a href={previewItem.url || '#'} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Project
                         </a>

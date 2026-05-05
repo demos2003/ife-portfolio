@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getWorkItems, type WorkItem } from '@/lib/work-store'
+import { NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
 
 // GET /api/work/public - Get all visible work items for public display
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Get all work items and filter for visible ones
-    const workItems = await getWorkItems()
-
-    // Filter to only show visible items
-    const visibleItems = workItems.filter(item => item.visible !== false)
+    // Get only visible work items using Prisma
+    const visibleItems = await prisma.workItem.findMany({
+      where: { visible: true },
+      orderBy: { createdAt: 'desc' }
+    })
 
     console.log('Public API - Returning visible work items:', visibleItems.length)
 

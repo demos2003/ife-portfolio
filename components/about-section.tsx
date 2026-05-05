@@ -5,7 +5,6 @@ import { NameHighlighter } from "./name-highlighter"
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Video, TrendingUp, Sparkles, Target, Edit, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/lib/auth-store"
+import { api } from "@/lib/api-client"
 
 interface Skill {
   title: string
@@ -79,12 +79,9 @@ export function AboutSection() {
 
   const loadContent = async () => {
     try {
-      const response = await fetch('/api/site-content')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.about) {
-          setContent(data.about)
-        }
+      const data = await api.get<{ about?: AboutContent }>('/api/site-content')
+      if (data.about) {
+        setContent(data.about)
       }
     } catch (error) {
       console.error('Failed to load about content:', error)
@@ -95,22 +92,13 @@ export function AboutSection() {
 
   const saveContent = async (updatedContent: AboutContent) => {
     try {
-      const response = await fetch('/api/site-content', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'about',
-          content: updatedContent
-        }),
+      await api.put('/api/site-content', {
+        type: 'about',
+        content: updatedContent
       })
-
-      if (response.ok) {
-        setContent(updatedContent)
-        setIsEditing(false)
-        setEditingSkillIndex(null)
-      }
+      setContent(updatedContent)
+      setIsEditing(false)
+      setEditingSkillIndex(null)
     } catch (error) {
       console.error('Failed to save about content:', error)
     }

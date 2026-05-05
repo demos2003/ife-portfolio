@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadToCloudinary, validateCloudinaryConfig } from '@/lib/cloudinary'
+import { requireAuth } from '@/lib/auth-middleware'
+
+// Force Node.js runtime for Cloudinary compatibility
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
+  const auth = requireAuth(request)
+  if (auth instanceof NextResponse) return auth
+
   try {
     // Validate Cloudinary configuration
     if (!validateCloudinaryConfig()) {

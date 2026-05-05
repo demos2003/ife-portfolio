@@ -6,7 +6,7 @@ import { useTheme } from "@/lib/theme-store"
 import { useEffect } from "react"
 
 export function ThemeToggle() {
-  const { theme, toggleTheme, setTheme } = useTheme()
+  const { toggleTheme, setTheme } = useTheme()
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme-storage")
