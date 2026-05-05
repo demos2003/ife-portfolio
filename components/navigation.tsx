@@ -38,11 +38,11 @@ export function Navigation() {
             className="flex items-center gap-2 text-xl md:text-2xl font-serif font-bold text-primary transition-colors hover:opacity-80"
           >
             <Image
-              src="/IfeoluwaLogo.png"
-              alt="Ifeoluwa Logo"
-              width={120}
+              src="/ifes-editroom.png"
+              alt="Ife's EditRoom"
+              width={200}
               height={80}
-              className="h-20 w-auto md:h-30"
+              className="h-16 w-auto md:h-20"
             />
           </button>
 
