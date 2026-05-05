@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-middleware'
 import { z } from 'zod'
 
-// Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-// Validation schemas
 const skillSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
@@ -26,35 +24,22 @@ const contactContentSchema = z.object({
 })
 
 const updateSiteContentSchema = z.object({
-  type: z.enum(['about', 'contact'], {
-    errorMap: () => ({ message: 'Invalid type. Must be "about" or "contact"' })
-  }),
+  type: z.enum(['about', 'contact']),
   content: z.union([aboutContentSchema, contactContentSchema]),
 })
 
-// GET /api/site-content - Get about and contact content
 export async function GET() {
   try {
-    const content = await prisma.siteContent.findFirst()
-
-    if (!content) {
-      return NextResponse.json({ about: null, contact: null })
-    }
-
-    return NextResponse.json({
-      about: content.about,
-      contact: content.contact,
-    })
+    const db = await getDb()
+    const content = await db.collection('sitecontents').findOne({})
+    if (!content) return NextResponse.json({ about: null, contact: null })
+    return NextResponse.json({ about: content.about ?? null, contact: content.contact ?? null })
   } catch (error) {
     console.error('GET Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to load site content' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to load site content' }, { status: 500 })
   }
 }
 
-// PUT /api/site-content - Update about or contact content
 export async function PUT(request: NextRequest) {
   const auth = requireAuth(request)
   if (auth instanceof NextResponse) return auth
@@ -63,96 +48,42 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { type, content } = updateSiteContentSchema.parse(body)
 
+    const db = await getDb()
+    const existing = await db.collection('sitecontents').findOne({})
+
     if (type === 'about') {
       const aboutData = aboutContentSchema.parse(content)
-
-      // Get existing or create new
-      const existing = await prisma.siteContent.findFirst()
-
       if (existing) {
-        // Update existing record
-        const updated = await prisma.siteContent.update({
-          where: { id: existing.id },
-          data: {
-            about: aboutData,
-            updatedAt: new Date(),
-          },
-        })
-        return NextResponse.json({ success: true, content: updated.about })
+        await db.collection('sitecontents').updateOne(
+          { _id: existing._id },
+          { $set: { about: aboutData, updatedAt: new Date() } }
+        )
       } else {
-        // Create new record (Prisma will auto-generate the ObjectId)
-        const created = await prisma.siteContent.create({
-          data: {
-            about: aboutData,
-          },
-        })
-        return NextResponse.json({ success: true, content: created.about })
+        await db.collection('sitecontents').insertOne({ about: aboutData, updatedAt: new Date() })
       }
+      return NextResponse.json({ success: true, content: aboutData })
     }
 
     if (type === 'contact') {
       const contactData = contactContentSchema.parse(content)
-
-      // Get existing or create new
-      const existing = await prisma.siteContent.findFirst()
-
+      const contactDoc = { email: contactData.email, phone: contactData.phone, resumeUrl: contactData.resumeUrl || null }
       if (existing) {
-        // Update existing record
-        const updated = await prisma.siteContent.update({
-          where: { id: existing.id },
-          data: {
-            contact: {
-              email: contactData.email,
-              phone: contactData.phone,
-              resumeUrl: contactData.resumeUrl || null,
-            },
-            updatedAt: new Date(),
-          },
-        })
-        return NextResponse.json({ success: true, content: updated.contact })
+        await db.collection('sitecontents').updateOne(
+          { _id: existing._id },
+          { $set: { contact: contactDoc, updatedAt: new Date() } }
+        )
       } else {
-        // Create new record (Prisma will auto-generate the ObjectId)
-        const created = await prisma.siteContent.create({
-          data: {
-            contact: {
-              email: contactData.email,
-              phone: contactData.phone,
-              resumeUrl: contactData.resumeUrl || null,
-            },
-          },
-        })
-        return NextResponse.json({ success: true, content: created.contact })
+        await db.collection('sitecontents').insertOne({ contact: contactDoc, updatedAt: new Date() })
       }
+      return NextResponse.json({ success: true, content: contactDoc })
     }
 
-    return NextResponse.json(
-      { error: 'Invalid request' },
-      { status: 400 }
-    )
-
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   } catch (error) {
-    console.error('PUT Error:', error)
-
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input data', details: error.errors }, { status: 400 })
     }
-
-    // Return more detailed error for debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : undefined
-
-    console.error('Detailed error:', { errorMessage, errorStack })
-
-    return NextResponse.json(
-      {
-        error: 'Failed to update site content',
-        details: errorMessage,
-        hint: 'Check DATABASE_URL is set in Vercel environment variables'
-      },
-      { status: 500 }
-    )
+    console.error('PUT Error:', error)
+    return NextResponse.json({ error: 'Failed to update site content' }, { status: 500 })
   }
 }

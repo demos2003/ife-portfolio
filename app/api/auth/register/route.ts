@@ -1,69 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/db'
 import { z } from 'zod'
-import { Prisma } from '@prisma/client'
 
-// Validation schema for registration
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  firstName: z.string().min(1, 'First name is required').max(50, 'First name must be less than 50 characters'),
+  firstName: z.string().min(1, 'First name is required').max(50),
 })
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate the request body
     const body = await request.json()
     const { email, password, firstName } = registerSchema.parse(body)
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 12)
+    const db = await getDb()
 
-    // Create new user using Prisma
-    const newUser = await prisma.user.create({
-      data: {
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        firstName,
-      }
+    const result = await db.collection('users').insertOne({
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      firstName,
+      createdAt: new Date(),
     })
 
-    // Return success response (don't include password in response)
     return NextResponse.json({
       success: true,
       message: 'User registered successfully',
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        firstName: newUser.firstName,
-        createdAt: newUser.createdAt,
-      }
+      user: { id: result.insertedId.toString(), email: email.toLowerCase(), firstName },
     }, { status: 201 })
-
-  } catch (error) {
-    console.error('Registration error:', error)
-
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input data', details: error.errors }, { status: 400 })
     }
-
-    // Handle unique constraint violation (duplicate email)
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        return NextResponse.json(
-          { error: 'Email already exists' },
-          { status: 400 }
-        )
-      }
+    // MongoDB duplicate key error
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: number }).code === 11000) {
+      return NextResponse.json({ error: 'Email already exists' }, { status: 400 })
     }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('Registration error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

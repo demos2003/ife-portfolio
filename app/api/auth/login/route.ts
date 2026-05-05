@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import prisma from '@/lib/prisma'
+import { getDb } from '@/lib/db'
 import { signToken } from '@/lib/jwt'
 import { z } from 'zod'
 
-// Validation schema for login
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
@@ -12,58 +11,35 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate the request body
     const body = await request.json()
     const { email, password } = loginSchema.parse(body)
 
-    // Find user by email using Prisma
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
-    })
+    const db = await getDb()
+    const user = await db.collection('users').findOne({ email: email.toLowerCase() })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password)
+    const isPasswordValid = await bcrypt.compare(password, user.password as string)
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    const token = signToken({ userId: user.id, email: user.email })
+    const id = user._id.toString()
+    const token = signToken({ userId: id, email: user.email as string })
 
     return NextResponse.json({
       success: true,
       message: 'Login successful',
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        createdAt: user.createdAt,
-      }
+      user: { id, email: user.email, firstName: user.firstName, createdAt: user.createdAt },
     })
-
   } catch (error) {
-    console.error('Login error:', error)
-
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input data', details: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input data', details: error.errors }, { status: 400 })
     }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('Login error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

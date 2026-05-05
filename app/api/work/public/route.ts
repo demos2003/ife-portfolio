@@ -1,23 +1,13 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { getDb, toDoc } from '@/lib/db'
 
-// GET /api/work/public - Get all visible work items for public display
 export async function GET() {
   try {
-    // Get only visible work items using Prisma
-    const visibleItems = await prisma.workItem.findMany({
-      where: { visible: true },
-      orderBy: { createdAt: 'desc' }
-    })
-
-    console.log('Public API - Returning visible work items:', visibleItems.length)
-
-    return NextResponse.json(visibleItems)
+    const db = await getDb()
+    const items = await db.collection('workitems').find({ visible: { $ne: false } }).sort({ createdAt: -1 }).toArray()
+    return NextResponse.json(items.map(toDoc))
   } catch (error) {
     console.error('Public API Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch work items' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch work items' }, { status: 500 })
   }
 }

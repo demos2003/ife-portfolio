@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Play } from "lucide-react"
+import { ArrowRight, Instagram } from "lucide-react"
 import { useEffect, useState } from "react"
 
 export function HeroSection() {
@@ -93,9 +93,11 @@ export function HeroSection() {
               View My Work
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button onClick={scrollToAbout} variant="outline" size="lg" className="text-base px-8 bg-transparent">
-              <Play className="mr-2 h-5 w-5" />
-              Learn More
+            <Button asChild variant="outline" size="lg" className="text-base px-8 bg-transparent">
+              <a href="https://www.instagram.com/ifeseditroom?igsh=eGxuMWk0NzdkN3N5&utm_source=qr" target="_blank" rel="noopener noreferrer">
+                <Instagram className="mr-2 h-5 w-5" />
+                View my IG
+              </a>
             </Button>
           </div>
         </div>
