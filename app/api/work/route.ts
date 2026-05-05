@@ -10,6 +10,7 @@ const workItemSchema = z.object({
   url: z.string().url().optional().or(z.literal('')),
   thumbnailUrl: z.string().url().optional().or(z.literal('')),
   images: z.array(z.string().url()).optional(),
+  visible: z.boolean().default(true),
 }).refine(
   (data) => {
     if ((data.type === 'youtube' || data.type === 'short-form') && !data.url) return false
