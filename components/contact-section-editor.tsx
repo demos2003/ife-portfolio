@@ -342,7 +342,7 @@ export function ContactSectionEditor() {
                         <Input
                           id="resume"
                           type="file"
-                          accept=".pdf"
+                          accept="*"
                           onChange={handleResumeUpload}
                           className="cursor-pointer"
                           disabled={isUploadingResume}
@@ -399,7 +399,7 @@ export function ContactSectionEditor() {
                         <Input
                           id="rateCard"
                           type="file"
-                          accept=".pdf"
+                          accept="*"
                           onChange={handleRateCardUpload}
                           className="cursor-pointer"
                           disabled={isUploadingRateCard}
