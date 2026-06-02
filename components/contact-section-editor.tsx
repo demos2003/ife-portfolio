@@ -143,9 +143,8 @@ export function ContactSectionEditor() {
       a.style.display = 'none'
       a.href = url
 
-      // Set custom filename based on file type
-      const fileExtension = content.resumeUrl.split('.').pop()?.toLowerCase() || 'pdf'
-      const filename = `resume.${fileExtension}`
+      const fileExtension = content.resumeUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf'
+      const filename = `Ifeoluwa Okusanya Resume.${fileExtension}`
 
       a.download = filename
       document.body.appendChild(a)
@@ -173,9 +172,8 @@ export function ContactSectionEditor() {
       a.style.display = 'none'
       a.href = url
 
-      // Set custom filename based on file type
-      const fileExtension = content.rateCardUrl.split('.').pop()?.toLowerCase() || 'pdf'
-      const filename = `rate-card.${fileExtension}`
+      const fileExtension = content.rateCardUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf'
+      const filename = `Ifeoluwa Okusanya Rate Card.${fileExtension}`
 
       a.download = filename
       document.body.appendChild(a)
@@ -346,7 +344,7 @@ export function ContactSectionEditor() {
                         <Input
                           id="resume"
                           type="file"
-                          accept=".pdf,.doc,.docx"
+                          accept=".pdf"
                           onChange={handleResumeUpload}
                           className="cursor-pointer"
                           disabled={isUploadingResume}
@@ -403,7 +401,7 @@ export function ContactSectionEditor() {
                         <Input
                           id="rateCard"
                           type="file"
-                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          accept=".pdf"
                           onChange={handleRateCardUpload}
                           className="cursor-pointer"
                           disabled={isUploadingRateCard}
