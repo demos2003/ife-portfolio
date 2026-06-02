@@ -20,7 +20,9 @@ interface ContactContent {
   email: string;
   phone: string;
   resumeUrl?: string;
+  resumeExtension?: string;
   rateCardUrl?: string;
+  rateCardExtension?: string;
 }
 
 export function ContactSection() {
@@ -116,8 +118,7 @@ export function ContactSection() {
       a.style.display = "none";
       a.href = url;
 
-      const fileExtension = content.resumeUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf';
-      const filename = `Ifeoluwa Okusanya Resume.${fileExtension}`;
+      const filename = `Ifeoluwa Okusanya Resume.${content.resumeExtension || 'pdf'}`;
 
       a.download = filename;
       document.body.appendChild(a);
@@ -144,8 +145,7 @@ export function ContactSection() {
       const a = document.createElement("a");
       a.style.display = "none";
       a.href = url;
-      const fileExtension = content.rateCardUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf';
-      const filename = `Ifeoluwa Okusanya Rate Card.${fileExtension}`;
+      const filename = `Ifeoluwa Okusanya Rate Card.${content.rateCardExtension || 'pdf'}`;
 
       a.download = filename;
       document.body.appendChild(a);

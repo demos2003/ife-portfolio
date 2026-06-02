@@ -27,6 +27,9 @@ export type ContactContent = {
   email: string
   phone: string
   resumeUrl?: string | null
+  resumeExtension?: string | null
+  rateCardUrl?: string | null
+  rateCardExtension?: string | null
 }
 
 export type SiteContent = {

@@ -14,7 +14,9 @@ interface ContactContent {
   email: string
   phone: string
   resumeUrl?: string
+  resumeExtension?: string
   rateCardUrl?: string
+  rateCardExtension?: string
 }
 
 export function ContactSectionEditor() {
@@ -83,7 +85,8 @@ export function ContactSectionEditor() {
       const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
       const updatedContent = {
         ...editForm,
-        resumeUrl: result.url
+        resumeUrl: result.url,
+        resumeExtension: file.name.split('.').pop()?.toLowerCase() || 'pdf',
       }
       setEditForm(updatedContent)
       console.log('Resume uploaded:', result.url)
@@ -108,7 +111,8 @@ export function ContactSectionEditor() {
       const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
       const updatedContent = {
         ...editForm,
-        rateCardUrl: result.url
+        rateCardUrl: result.url,
+        rateCardExtension: file.name.split('.').pop()?.toLowerCase() || 'pdf',
       }
       setEditForm(updatedContent)
       console.log('Rate card uploaded:', result.url)
@@ -143,8 +147,7 @@ export function ContactSectionEditor() {
       a.style.display = 'none'
       a.href = url
 
-      const fileExtension = content.resumeUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf'
-      const filename = `Ifeoluwa Okusanya Resume.${fileExtension}`
+      const filename = `Ifeoluwa Okusanya Resume.${content.resumeExtension || 'pdf'}`
 
       a.download = filename
       document.body.appendChild(a)
@@ -172,8 +175,7 @@ export function ContactSectionEditor() {
       a.style.display = 'none'
       a.href = url
 
-      const fileExtension = content.rateCardUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf'
-      const filename = `Ifeoluwa Okusanya Rate Card.${fileExtension}`
+      const filename = `Ifeoluwa Okusanya Rate Card.${content.rateCardExtension || 'pdf'}`
 
       a.download = filename
       document.body.appendChild(a)
