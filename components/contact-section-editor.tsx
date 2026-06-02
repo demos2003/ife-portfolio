@@ -263,12 +263,10 @@ export function ContactSectionEditor() {
               {content.resumeUrl ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-green-600">Uploaded</Badge>
-                  <Button asChild variant="outline" size="sm">
-                    <a href={content.resumeUrl} target="_blank" rel="noopener noreferrer">
-                      View Resume
-                    </a>
+                  <Button variant="outline" size="sm" onClick={handleDownloadResume}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Resume
                   </Button>
-                 
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">Not uploaded</p>
@@ -283,12 +281,10 @@ export function ContactSectionEditor() {
               {content.rateCardUrl ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-green-600">Uploaded</Badge>
-                  <Button asChild variant="outline" size="sm">
-                    <a href={content.rateCardUrl} target="_blank" rel="noopener noreferrer">
-                      View Rate Card
-                    </a>
+                  <Button variant="outline" size="sm" onClick={handleDownloadRateCard}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Rate Card
                   </Button>
-                 
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">Not uploaded</p>
