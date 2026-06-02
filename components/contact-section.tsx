@@ -116,7 +116,8 @@ export function ContactSection() {
       a.style.display = "none";
       a.href = url;
 
-      const filename = `Ifeoluwa Okusanya Resume`;
+      const fileExtension = content.resumeUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf';
+      const filename = `Ifeoluwa Okusanya Resume.${fileExtension}`;
 
       a.download = filename;
       document.body.appendChild(a);
@@ -143,7 +144,8 @@ export function ContactSection() {
       const a = document.createElement("a");
       a.style.display = "none";
       a.href = url;
-      const filename = `Ifeoluwa Okusanya Rate Card`;
+      const fileExtension = content.rateCardUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'pdf';
+      const filename = `Ifeoluwa Okusanya Rate Card.${fileExtension}`;
 
       a.download = filename;
       document.body.appendChild(a);
