@@ -20,10 +20,10 @@ const aboutContentSchema = z.object({
 const contactContentSchema = z.object({
   email: z.string().email('Valid email is required'),
   phone: z.string().min(1, 'Phone is required'),
-  resumeUrl: z.string().url().optional().or(z.literal('')).nullable(),
-  resumeExtension: z.string().optional().nullable(),
-  rateCardUrl: z.string().url().optional().or(z.literal('')).nullable(),
-  rateCardExtension: z.string().optional().nullable(),
+  rateCardNigeriaUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  rateCardNigeriaExtension: z.string().optional().nullable(),
+  rateCardInternationalUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  rateCardInternationalExtension: z.string().optional().nullable(),
 })
 
 const updateSiteContentSchema = z.object({
@@ -72,10 +72,10 @@ export async function PUT(request: NextRequest) {
       const contactDoc = {
         email: contactData.email,
         phone: contactData.phone,
-        resumeUrl: contactData.resumeUrl || null,
-        resumeExtension: contactData.resumeExtension || null,
-        rateCardUrl: contactData.rateCardUrl || null,
-        rateCardExtension: contactData.rateCardExtension || null,
+        rateCardNigeriaUrl: contactData.rateCardNigeriaUrl || null,
+        rateCardNigeriaExtension: contactData.rateCardNigeriaExtension || null,
+        rateCardInternationalUrl: contactData.rateCardInternationalUrl || null,
+        rateCardInternationalExtension: contactData.rateCardInternationalExtension || null,
       }
       if (existing) {
         await db.collection('sitecontents').updateOne(

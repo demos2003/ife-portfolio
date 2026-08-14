@@ -61,8 +61,10 @@ type Skill {
 
 // Embedded type for Contact content
 type Contact {
-  email      String
-  phone      String
-  resumeUrl  String?
-  rateCardUrl String?
+  email                        String
+  phone                        String
+  rateCardNigeriaUrl           String?
+  rateCardNigeriaExtension     String?
+  rateCardInternationalUrl     String?
+  rateCardInternationalExtension String?
 }

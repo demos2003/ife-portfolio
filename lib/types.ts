@@ -26,10 +26,10 @@ export type Skill = {
 export type ContactContent = {
   email: string
   phone: string
-  resumeUrl?: string | null
-  resumeExtension?: string | null
-  rateCardUrl?: string | null
-  rateCardExtension?: string | null
+  rateCardNigeriaUrl?: string | null
+  rateCardNigeriaExtension?: string | null
+  rateCardInternationalUrl?: string | null
+  rateCardInternationalExtension?: string | null
 }
 
 export type SiteContent = {

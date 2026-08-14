@@ -13,29 +13,29 @@ import { api } from "@/lib/api-client"
 interface ContactContent {
   email: string
   phone: string
-  resumeUrl?: string
-  resumeExtension?: string
-  rateCardUrl?: string
-  rateCardExtension?: string
+  rateCardNigeriaUrl?: string
+  rateCardNigeriaExtension?: string
+  rateCardInternationalUrl?: string
+  rateCardInternationalExtension?: string
 }
 
 export function ContactSectionEditor() {
   const [content, setContent] = useState<ContactContent>({
     email: "",
     phone: "",
-    resumeUrl: "",
-    rateCardUrl: ""
+    rateCardNigeriaUrl: "",
+    rateCardInternationalUrl: ""
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [isUploadingResume, setIsUploadingResume] = useState(false)
-  const [isUploadingRateCard, setIsUploadingRateCard] = useState(false)
+  const [isUploadingRateCardNigeria, setIsUploadingRateCardNigeria] = useState(false)
+  const [isUploadingRateCardInternational, setIsUploadingRateCardInternational] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editForm, setEditForm] = useState<ContactContent>({
     email: "",
     phone: "",
-    resumeUrl: "",
-    rateCardUrl: ""
+    rateCardNigeriaUrl: "",
+    rateCardInternationalUrl: ""
   })
 
   useEffect(() => {
@@ -72,11 +72,11 @@ export function ContactSectionEditor() {
     }
   }
 
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRateCardNigeriaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setIsUploadingResume(true)
+    setIsUploadingRateCardNigeria(true)
 
     try {
       const uploadFormData = new FormData()
@@ -85,60 +85,60 @@ export function ContactSectionEditor() {
       const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
       const updatedContent = {
         ...editForm,
-        resumeUrl: result.url,
-        resumeExtension: file.name.split('.').pop()?.toLowerCase() || 'pdf',
+        rateCardNigeriaUrl: result.url,
+        rateCardNigeriaExtension: file.name.split('.').pop()?.toLowerCase() || 'pdf',
       }
       setEditForm(updatedContent)
-      console.log('Resume uploaded:', result.url)
-    } catch (error) {
-      console.error('Upload error:', error)
-      alert('Failed to upload resume')
-    } finally {
-      setIsUploadingResume(false)
-    }
-  }
-
-  const handleRateCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setIsUploadingRateCard(true)
-
-    try {
-      const uploadFormData = new FormData()
-      uploadFormData.append('file', file)
-
-      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
-      const updatedContent = {
-        ...editForm,
-        rateCardUrl: result.url,
-        rateCardExtension: file.name.split('.').pop()?.toLowerCase() || 'pdf',
-      }
-      setEditForm(updatedContent)
-      console.log('Rate card uploaded:', result.url)
+      console.log('Nigerian rate card uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
       alert('Failed to upload rate card')
     } finally {
-      setIsUploadingRateCard(false)
+      setIsUploadingRateCardNigeria(false)
     }
   }
 
-  const handleRemoveResume = () => {
-    setEditForm(prev => ({ ...prev, resumeUrl: "" }))
-    setContent(prev => ({ ...prev, resumeUrl: "" }))
-  }
+  const handleRateCardInternationalUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  const handleRemoveRateCard = () => {
-    setEditForm(prev => ({ ...prev, rateCardUrl: "" }))
-    setContent(prev => ({ ...prev, rateCardUrl: "" }))
-  }
-
-  const handleDownloadResume = async () => {
-    if (!content.resumeUrl) return
+    setIsUploadingRateCardInternational(true)
 
     try {
-      const response = await fetch(content.resumeUrl)
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+
+      const result = await api.upload<{ url: string }>('/api/upload', uploadFormData)
+      const updatedContent = {
+        ...editForm,
+        rateCardInternationalUrl: result.url,
+        rateCardInternationalExtension: file.name.split('.').pop()?.toLowerCase() || 'pdf',
+      }
+      setEditForm(updatedContent)
+      console.log('International rate card uploaded:', result.url)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload rate card')
+    } finally {
+      setIsUploadingRateCardInternational(false)
+    }
+  }
+
+  const handleRemoveRateCardNigeria = () => {
+    setEditForm(prev => ({ ...prev, rateCardNigeriaUrl: "" }))
+    setContent(prev => ({ ...prev, rateCardNigeriaUrl: "" }))
+  }
+
+  const handleRemoveRateCardInternational = () => {
+    setEditForm(prev => ({ ...prev, rateCardInternationalUrl: "" }))
+    setContent(prev => ({ ...prev, rateCardInternationalUrl: "" }))
+  }
+
+  const handleDownloadRateCardNigeria = async () => {
+    if (!content.rateCardNigeriaUrl) return
+
+    try {
+      const response = await fetch(content.rateCardNigeriaUrl)
       const blob = await response.blob()
 
       // Create a temporary anchor element
@@ -147,7 +147,7 @@ export function ContactSectionEditor() {
       a.style.display = 'none'
       a.href = url
 
-      const filename = `Ifeoluwa Okusanya Resume.${content.resumeExtension || 'pdf'}`
+      const filename = `Ifeoluwa Okusanya Rate Card (Nigeria).${content.rateCardNigeriaExtension || 'pdf'}`
 
       a.download = filename
       document.body.appendChild(a)
@@ -158,15 +158,15 @@ export function ContactSectionEditor() {
       document.body.removeChild(a)
     } catch (error) {
       console.error('Download failed:', error)
-      alert('Failed to download resume')
+      alert('Failed to download rate card')
     }
   }
 
-  const handleDownloadRateCard = async () => {
-    if (!content.rateCardUrl) return
+  const handleDownloadRateCardInternational = async () => {
+    if (!content.rateCardInternationalUrl) return
 
     try {
-      const response = await fetch(content.rateCardUrl)
+      const response = await fetch(content.rateCardInternationalUrl)
       const blob = await response.blob()
 
       // Create a temporary anchor element
@@ -175,7 +175,7 @@ export function ContactSectionEditor() {
       a.style.display = 'none'
       a.href = url
 
-      const filename = `Ifeoluwa Okusanya Rate Card.${content.rateCardExtension || 'pdf'}`
+      const filename = `Ifeoluwa Okusanya Rate Card (International).${content.rateCardInternationalExtension || 'pdf'}`
 
       a.download = filename
       document.body.appendChild(a)
@@ -203,7 +203,7 @@ export function ContactSectionEditor() {
             <MessageCircle className="h-5 w-5" />
             Contact Section
           </CardTitle>
-          <CardDescription>Manage your contact information and resume</CardDescription>
+          <CardDescription>Manage your contact information and rate cards</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -222,7 +222,7 @@ export function ContactSectionEditor() {
           <MessageCircle className="h-5 w-5" />
           Contact Section
         </CardTitle>
-        <CardDescription>Manage your contact information and resume</CardDescription>
+        <CardDescription>Manage your contact information and rate cards</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current Content Preview */}
@@ -258,14 +258,14 @@ export function ContactSectionEditor() {
             <div className="p-3 bg-muted/30 rounded-lg mt-4">
               <div className="flex items-center gap-2 mb-1">
                 <Download className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Resume</span>
+                <span className="text-sm font-medium">Rate Card (Nigeria)</span>
               </div>
-              {content.resumeUrl ? (
+              {content.rateCardNigeriaUrl ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-green-600">Uploaded</Badge>
-                  <Button variant="outline" size="sm" onClick={handleDownloadResume}>
+                  <Button variant="outline" size="sm" onClick={handleDownloadRateCardNigeria}>
                     <Download className="h-4 w-4 mr-2" />
-                    Download Resume
+                    Download Rate Card
                   </Button>
                 </div>
               ) : (
@@ -276,12 +276,12 @@ export function ContactSectionEditor() {
             <div className="p-3 bg-muted/30 rounded-lg mt-4">
               <div className="flex items-center gap-2 mb-1">
                 <Download className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Rate Card</span>
+                <span className="text-sm font-medium">Rate Card (International)</span>
               </div>
-              {content.rateCardUrl ? (
+              {content.rateCardInternationalUrl ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-green-600">Uploaded</Badge>
-                  <Button variant="outline" size="sm" onClick={handleDownloadRateCard}>
+                  <Button variant="outline" size="sm" onClick={handleDownloadRateCardInternational}>
                     <Download className="h-4 w-4 mr-2" />
                     Download Rate Card
                   </Button>
@@ -331,25 +331,25 @@ export function ContactSectionEditor() {
                 </div>
 
                 <div>
-                  <Label htmlFor="resume">Resume/CV</Label>
+                  <Label htmlFor="rateCardNigeria">Rate Card - Nigeria</Label>
                   <div className="space-y-3">
                     <div className="p-3 border rounded-lg bg-muted/30">
                       <div className="flex items-center gap-3 mb-2">
                         <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Upload Resume</span>
+                        <span className="text-sm font-medium">Upload Nigerian Rate Card</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Input
-                          id="resume"
+                          id="rateCardNigeria"
                           type="file"
                           accept="*"
-                          onChange={handleResumeUpload}
+                          onChange={handleRateCardNigeriaUpload}
                           className="cursor-pointer"
-                          disabled={isUploadingResume}
+                          disabled={isUploadingRateCardNigeria}
                         />
-                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingResume} asChild>
-                          <label htmlFor="resume" className="cursor-pointer">
-                            {isUploadingResume ? (
+                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingRateCardNigeria} asChild>
+                          <label htmlFor="rateCardNigeria" className="cursor-pointer">
+                            {isUploadingRateCardNigeria ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Upload className="h-4 w-4" />
@@ -357,29 +357,29 @@ export function ContactSectionEditor() {
                           </label>
                         </Button>
                       </div>
-                      {isUploadingResume && (
-                        <p className="text-sm text-muted-foreground mt-2">Uploading resume...</p>
+                      {isUploadingRateCardNigeria && (
+                        <p className="text-sm text-muted-foreground mt-2">Uploading rate card...</p>
                       )}
                     </div>
 
-                    {content.resumeUrl && (
+                    {content.rateCardNigeriaUrl && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center gap-2 text-green-700">
                           <Download className="h-4 w-4" />
-                          <span className="text-sm font-medium">Resume uploaded successfully</span>
+                          <span className="text-sm font-medium">Rate card uploaded successfully</span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                          <Button variant="outline" size="sm" onClick={handleDownloadResume}>
+                          <Button variant="outline" size="sm" onClick={handleDownloadRateCardNigeria}>
                             <Download className="h-4 w-4 mr-2" />
-                            Download Resume
+                            Download Rate Card
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={handleRemoveResume}
+                            onClick={handleRemoveRateCardNigeria}
                             className="text-destructive hover:text-destructive"
                           >
-                            Remove Resume
+                            Remove Rate Card
                           </Button>
                         </div>
                       </div>
@@ -388,25 +388,25 @@ export function ContactSectionEditor() {
                 </div>
 
                 <div>
-                  <Label htmlFor="rateCard">Rate Card/Pricing</Label>
+                  <Label htmlFor="rateCardInternational">Rate Card - International</Label>
                   <div className="space-y-3">
                     <div className="p-3 border rounded-lg bg-muted/30">
                       <div className="flex items-center gap-3 mb-2">
                         <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Upload Rate Card</span>
+                        <span className="text-sm font-medium">Upload International Rate Card</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Input
-                          id="rateCard"
+                          id="rateCardInternational"
                           type="file"
                           accept="*"
-                          onChange={handleRateCardUpload}
+                          onChange={handleRateCardInternationalUpload}
                           className="cursor-pointer"
-                          disabled={isUploadingRateCard}
+                          disabled={isUploadingRateCardInternational}
                         />
-                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingRateCard} asChild>
-                          <label htmlFor="rateCard" className="cursor-pointer">
-                            {isUploadingRateCard ? (
+                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0" disabled={isUploadingRateCardInternational} asChild>
+                          <label htmlFor="rateCardInternational" className="cursor-pointer">
+                            {isUploadingRateCardInternational ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Upload className="h-4 w-4" />
@@ -414,26 +414,26 @@ export function ContactSectionEditor() {
                           </label>
                         </Button>
                       </div>
-                      {isUploadingRateCard && (
+                      {isUploadingRateCardInternational && (
                         <p className="text-sm text-muted-foreground mt-2">Uploading rate card...</p>
                       )}
                     </div>
 
-                    {content.rateCardUrl && (
+                    {content.rateCardInternationalUrl && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center gap-2 text-green-700">
                           <Download className="h-4 w-4" />
                           <span className="text-sm font-medium">Rate card uploaded successfully</span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                          <Button variant="outline" size="sm" onClick={handleDownloadRateCard}>
+                          <Button variant="outline" size="sm" onClick={handleDownloadRateCardInternational}>
                             <Download className="h-4 w-4 mr-2" />
                             Download Rate Card
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={handleRemoveRateCard}
+                            onClick={handleRemoveRateCardInternational}
                             className="text-destructive hover:text-destructive"
                           >
                             Remove Rate Card
